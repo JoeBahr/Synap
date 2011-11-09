@@ -16,7 +16,7 @@ public class clTransportAudioPacket implements java.io.Serializable {
 	int mStartFrameId = START_FRAME_ID;
 	int mDataLength = 0;
 	int mSeqNumber = 0;
-	int mTimeStamp = 0;
+	long mTimeStamp = 0;
 	byte mAudioData[];
 	int mCs = 0;
 }
