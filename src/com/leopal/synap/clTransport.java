@@ -19,72 +19,105 @@ public class clTransport {
 	//Constant definition section
 	private static final int CST_FRAME_SIZE = 4*5;		//Int is 32bits long
 	
+	public static final int COMM_LINK_CLOSE = 0;
+	public static final int COMM_LINK_OPEN = 1;
+	public static final int COMM_LINK_ADDR_ERROR = 2;
+	public static final int COMM_LINK_EXCEPTION_ERR = 3;
+	
 	private static final int TR_PORT = 3123;
 	
 	clTransportAudioPacket mAudioPacket = new 	clTransportAudioPacket();
-	
 	private InetAddress mGroup;
 	private MulticastSocket mSocket;
-	private boolean commLinkInit = false;
-	private boolean mRcvCsErr = false;
-	private boolean mRcvStartFrameIdErr = false;
-		
+	private short mcommLinkInit;
+	private boolean mRcvCsErr;
+	private boolean mRcvStartFrameIdErr;
+
+	/**
+	 * clTransport() class constructor.
+	 * 
+	 *  
+	 * @param None    
+	 *                            	 
+	 * @return 	None
+	 *
+	 */	
 	public clTransport(){
 		mAudioPacket.mSeqNumber = 0;
 		mAudioPacket.mCs = 0;
 		mRcvCsErr = false;
 		mRcvStartFrameIdErr = false;
 		mAudioPacket.mTimeStamp = 0;
+		mcommLinkInit = COMM_LINK_CLOSE;
+		mRcvCsErr = false;
+		mRcvStartFrameIdErr = false;
 	}
 	
 	/**
 	 * commLinkInit() is used to initialize a communication link.
 	 * 
 	 *  
-	 * @param String multiCastAd Targeted multicast address    
+	 * @param String multiCastAd: Targeted multicast address    
 	 *                            	 
-	 * @return 	true => initialization OK
-	 * 			false => initialization KO
+	 * @return 	COMM_LINK_CLOSE => initialization not performed
+	 * 			COMM_LINK_OPEN => initialization performed and OK
+	 * 			COMM_LINK_ADDR_ERROR => the address is not a multicast address
+	 * 			COMM_LINK_EXCEPTION_ERR => An exception is returned by a socket function
 	 *
 	 */	
-	boolean commLinkInit(String multiCastAd){
+	public short commLinkInit(String multiCastAd){
+		mcommLinkInit = COMM_LINK_CLOSE;
 		try
 		{
 			mGroup = InetAddress.getByName(multiCastAd);
-			mSocket = new MulticastSocket(TR_PORT);
-			mSocket.joinGroup(mGroup);
-			commLinkInit = true;
+			if(mGroup.isMulticastAddress()) 						//multicast address only
+			{
+				mSocket = new MulticastSocket(TR_PORT);
+				mSocket.joinGroup(mGroup);
+				mcommLinkInit = COMM_LINK_OPEN;
+			}
+			else
+			{
+				mcommLinkInit = COMM_LINK_ADDR_ERROR;
+			}
 		}
 		catch(Exception e)
 		{
-			Log.e("commLinkInit()", "Error", e);	
-			commLinkInit = false;
+			Log.e("mcommLinkInit()", "Error", e);	
+			mcommLinkInit = COMM_LINK_EXCEPTION_ERR;
 		}
-		 return commLinkInit;
+		 return mcommLinkInit;
 	}
 
 	/**
 	 * closeCommLink() is used to close an opened communication link.
 	 * 
 	 *  
-	 * @param String multiCastAd Targeted multicast address    
+	 * @param None   
 	 *                            	 
-	 * @return 	true => initialization OK
-	 * 			false => initialization KO
+	 * @return 	COMM_LINK_CLOSE => the operations ends successfully
+	 * 			COMM_LINK_EXCEPTION_ERR => An exception is returned by the socket function
 	 *
 	 */	
-	void closeCommLink(){
-		if(commLinkInit){
+	public short closeCommLink(){
+		if(mcommLinkInit == COMM_LINK_OPEN)
+		{
 			try
 			{
 				mSocket.leaveGroup(mGroup);
+				mcommLinkInit = COMM_LINK_CLOSE;
 			}
 			catch(Exception e)
 			{
-				Log.e("commLinkInit()", "Error", e);	
-				commLinkInit = false;
+				Log.e("mcommLinkInit()", "Error", e);	
+				mcommLinkInit = COMM_LINK_EXCEPTION_ERR;
 			}
 		}
+		else
+		{
+			mcommLinkInit = COMM_LINK_CLOSE;
+		}
+		return mcommLinkInit;
 	}
 	
 	/**
@@ -100,9 +133,9 @@ public class clTransport {
 	 * 			false => initialization KO
 	 *
 	 */		
-	boolean sSendData(byte[] buf, int timeStamp, boolean firstAudioTransfer){
+	public boolean sSendData(byte[] buf, int timeStamp, boolean firstAudioTransfer){
 		boolean returnValue = false;
-		if(commLinkInit)
+		if(mcommLinkInit == COMM_LINK_OPEN)
 		{
 			preparePacketToSend(buf, timeStamp, firstAudioTransfer); 
 			try
@@ -130,18 +163,18 @@ public class clTransport {
 	 * rReceiveData() is used by the receiver to read data from a group if a communication link is established.
 	 * 
 	 *  
-	 * @param TO BE DONE
+	 * @param None
 	 *     	 
-	 * @return  int value	0	-> commLinkInit missing 
+	 * @return  int value	0	-> mcommLinkInit missing 
 	 * 						1	-> Rcv Ok
 	 * 						2	-> Start Frame Id error
 	 * 						3 	-> CS error
 	 *						4   -> Exception detected			
 	 */
-	int rReceiveData(){
+	public int rReceiveData(){
 		int returnValue = 0;
 		
-		if(commLinkInit)
+		if(mcommLinkInit == COMM_LINK_OPEN)
 		{
 			returnValue = 1;
 			try
@@ -205,7 +238,7 @@ public class clTransport {
 	 * @return byte[]	the packet ready to send
 	 *
 	 */
-	void preparePacketToSend(byte[] buf, int timeStamp, boolean firstAudioTransfer) {
+	private void preparePacketToSend(byte[] buf, int timeStamp, boolean firstAudioTransfer) {
 		
 		if(firstAudioTransfer)
 		{
@@ -233,7 +266,7 @@ public class clTransport {
 	 * @return int the check sumvalue	the packet ready to send
 	 *
 	 */	
-	int computeCs(byte[] buf, int length){
+	private int computeCs(byte[] buf, int length){
 		int cs = 0;
 		
 		if(buf.length <= length){
