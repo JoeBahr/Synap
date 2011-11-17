@@ -30,7 +30,7 @@ public class clContentInWaveFile extends clContentIn {
     /**
      * Audio File size
      */
-    private int pv_audioFileDataLength;
+    private int pv_audioFileDataLength=0;
     private static final String RIFF_HEADER = "RIFF";
     private static final String WAVE_HEADER = "WAVE";
     private static final String FMT_HEADER = "fmt ";
@@ -59,6 +59,16 @@ public class clContentInWaveFile extends clContentIn {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         return sampleCount;
+    }
+
+    @Override
+    public boolean isContentAvailable() {
+        return (!isEndOfContent() && (pv_audioFileDataLength!=0));
+    }
+
+    @Override
+    public boolean isEndOfContent() {
+        return (pv_audioFilePosition >= pv_audioFileDataLength);
     }
 
     /**

@@ -44,6 +44,24 @@ public class clContentIn extends clContent{
     }
 
     /**
+     * Say if a client can read data
+     *
+     * @return True if there are data available
+     */
+    public boolean isContentAvailable() {
+        return false;
+    }
+
+    /**
+     * Say if a client if the end of stream has been reached
+     *
+     * @return True if there are data available
+     */
+    public boolean isEndOfContent() {
+        return true;
+    }
+
+    /**
      * Prepare the main buffer that will be used for reading audio content
      *
      * @return a buffer to store audio data in

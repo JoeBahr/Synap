@@ -18,6 +18,7 @@ public class clContent {
      * Holds the PCM audio details
      */
     protected clPcmFormat pv_pcmFormat;
+
     /**
      * Size of an audio block in ms
      */
@@ -32,6 +33,15 @@ public class clContent {
     {
         pv_pcmFormat = new clPcmFormat();
         pv_blockLengthMs = _blockLengthMs;
+    }
+
+    /**
+     * Initialize the class and define the size of a block
+     *
+     * @return the length in ms defined for a block size
+     */
+    public int getBlockLengthMs() {
+        return pv_blockLengthMs;
     }
 
     /**
