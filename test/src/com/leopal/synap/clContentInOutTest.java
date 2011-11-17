@@ -14,6 +14,9 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
     public void testOpenAudioFile() throws Exception {
         clContentIn classToTest = new clContentInWaveFile(1000);
 
+        assertEquals(false, classToTest.isContentAvailable());
+        assertEquals(true, classToTest.isEndOfContent());
+
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
         classToTest.openAudioInputStream(inputStream);
@@ -22,6 +25,8 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
         assertEquals(2,detectedFormat.getNumberOfChannel());
         assertEquals(16,detectedFormat.getBitDepth());
         assertEquals(44100,detectedFormat.getSampleRate(),44100);
+        assertEquals(true, classToTest.isContentAvailable());
+        assertEquals(false, classToTest.isEndOfContent());
     }
 
     public void testReadNextAudioBlock() throws Exception {
@@ -41,6 +46,8 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
         } while (sampleCount!=0);
 
         assertEquals(441000,totalSampleCount);
+        assertEquals(false, classToTest.isContentAvailable());
+        assertEquals(true, classToTest.isEndOfContent());
     }
 
     /**
