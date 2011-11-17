@@ -3,11 +3,12 @@ package com.leopal.synap;
 import android.util.Log;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nicolas
+ * Root class for Audio Content Management
+ *
+ * Creation information
+ * @author nicolas
  * Date: 17/11/11
  * Time: 16:22
- * To change this template use File | Settings | File Templates.
  */
 public class clContent {
     /** Logging TAG*/
@@ -47,6 +48,8 @@ public class clContent {
      * @param _bitDepth     Number of bits per sample (one channel)
      * @param _nChannels    Number of channels per sample
      * @param _SampleRate   Number of samples rate per second
+     * @return 0 if failed
+     *         1 if success
      */
     public int setPlayoutParameter(int _bitDepth, int _nChannels, int _SampleRate)
     {

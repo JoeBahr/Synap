@@ -4,11 +4,12 @@ import android.media.AudioManager;
 import android.media.AudioTrack;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nicolas
+ * Class for Playout on a local Android device through AudioTrack
+ *
+ * Creation information
+ * @author nicolas
  * Date: 17/11/11
  * Time: 17:00
- * To change this template use File | Settings | File Templates.
  */
 public class clContentOutAudioTrack extends clContentOut{
     /**

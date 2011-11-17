@@ -7,11 +7,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nicolas
+ * Class for Audio Wave File reading
+ *
+ * Creation information
+ * @author nicolas
  * Date: 17/11/11
  * Time: 16:41
- * To change this template use File | Settings | File Templates.
  */
 public class clContentInWaveFile extends clContentIn {
 
@@ -67,11 +68,9 @@ public class clContentInWaveFile extends clContentIn {
      *
      * @return the number of read byte
      */
-    //TODO To modify in order to manage right file end
     private int AudioFileWave_read(byte[] _data)
     throws IOException {
-        int read = 0;
-        read = pv_audioFile.read(_data, 0, _data.length);
+        int read = pv_audioFile.read(_data, 0, _data.length);
 
         if ((pv_audioFilePosition+read>pv_audioFileDataLength) && (read !=0))
             if (pv_audioFilePosition<pv_audioFileDataLength)
@@ -87,6 +86,7 @@ public class clContentInWaveFile extends clContentIn {
      * Read a wav Audio Header from an Inputstream and store info in class (sample rate/depth)
      *
      * @param _waveInOutStream    A file inputStream pointing to the audio file
+     *
      * @throws java.io.IOException
      */
     private void AudioFileWave_ReadHeader(InputStream _waveInOutStream)

@@ -6,7 +6,10 @@ import android.media.AudioFormat;
  * This class store the PCM non linear characterictics and
  * allow to exchange between physical detail and android representation of audio
  * Mainly for Audiotrack and WAV Files
+ *
+ * @author nicolas
  */
+
 public class clPcmFormat {
     public int getSampleRate() {
         return sampleRate;

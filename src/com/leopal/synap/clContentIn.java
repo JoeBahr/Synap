@@ -4,16 +4,17 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Created by IntelliJ IDEA.
- * User: nicolas
- * Date: 17/11/11
- * Time: 16:30
- * To change this template use File | Settings | File Templates.
- *
- * The method is
+ * Root class for content reading
+ * The usage of such derived class are
  * -open inputstream
  * -getBuffer
  * -readAudioBlock with this buffer
+ *
+ * Creation information
+ * @author nicolas
+ * Date: 17/11/11
+ * Time: 16:30
+ * To change this template use File | Settings | File Templates.
  */
 public class clContentIn extends clContent{
 
@@ -25,6 +26,7 @@ public class clContentIn extends clContent{
      * Open an audio file to extract chunk of Audio
      *
      * @param _file    An inputStream File to be opened
+     * @throws java.io.IOException
      */
     public void openAudioInputStream(InputStream _file)
     throws IOException {
@@ -33,6 +35,7 @@ public class clContentIn extends clContent{
     /**
      * Read next one audio block
      *
+     * @param _data The buffer where to store read data
      * @return The number of sample that were read
      */
     public int readNextAudioBlock(byte[] _data)
