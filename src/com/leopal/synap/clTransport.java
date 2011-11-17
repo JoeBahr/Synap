@@ -133,7 +133,7 @@ public class clTransport {
 	 * 			false => initialization KO
 	 *
 	 */		
-	public boolean sSendData(byte[] buf, int timeStamp, boolean firstAudioTransfer){
+	public boolean sSendData(byte[] buf, long timeStamp, boolean firstAudioTransfer){
 		boolean returnValue = false;
 		if(mcommLinkInit == COMM_LINK_OPEN)
 		{
@@ -238,7 +238,7 @@ public class clTransport {
 	 * @return byte[]	the packet ready to send
 	 *
 	 */
-	private void preparePacketToSend(byte[] buf, int timeStamp, boolean firstAudioTransfer) {
+	private void preparePacketToSend(byte[] buf, long timeStamp, boolean firstAudioTransfer) {
 		
 		if(firstAudioTransfer)
 		{
