@@ -12,7 +12,7 @@ import java.io.InputStream;
  */
 public class clContentInOutTest extends android.test.AndroidTestCase {
     public void testOpenAudioFile() throws Exception {
-        clContentInOut classToTest = new clContentInOut(1000);
+        clContentIn classToTest = new clContentInWaveFile(1000);
 
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
@@ -25,7 +25,7 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
     }
 
     public void testReadNextAudioBlock() throws Exception {
-        clContentInOut classToTest = new clContentInOut(1000);
+        clContentIn classToTest = new clContentInWaveFile(1000);
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
 
@@ -40,7 +40,6 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
             totalSampleCount = totalSampleCount + sampleCount;
         } while (sampleCount!=0);
 
-        //TODO understand why different from 441000
         assertEquals(441000,totalSampleCount);
     }
 
@@ -49,8 +48,8 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
      * @throws Exception
      */
     public void testStartToPlay() throws Exception {
-        clContentInOut audioReader = new clContentInOut(1000);
-        clContentInOut classToTest = new clContentInOut(1000);
+        clContentIn audioReader = new clContentInWaveFile(1000);
+        clContentOut classToTest = new clContentOutAudioTrack(1000);
 
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
@@ -58,7 +57,7 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
         audioReader.openAudioInputStream(inputStream);
         clPcmFormat detectedFormat = audioReader.getPcmFormat();
 
-        int confResult = classToTest.configurePlayoutParameter(detectedFormat.getBitDepth(),detectedFormat.getNumberOfChannel(),detectedFormat.getSampleRate());
+        int confResult = classToTest.setPlayoutParameter(detectedFormat.getBitDepth(),detectedFormat.getNumberOfChannel(),detectedFormat.getSampleRate());
         assertEquals(1,confResult);
         classToTest.startToPlay();
 
