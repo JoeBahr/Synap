@@ -12,7 +12,7 @@ import android.util.Log;
  */
 public class clContent {
     /** Logging TAG*/
-    private static final String TAG = "MyActivity";
+    private static final String TAG = "clContentLog";
 
     /**
      * Holds the PCM audio details
