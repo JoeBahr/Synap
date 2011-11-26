@@ -280,5 +280,13 @@ public class clSyncClientThread {
 		return _time;
 	}
 
-
+    /**
+     * Wait until specified timeStamp
+     *
+     * @param _timeStamp
+     */
+    public void waitUntilTimeStamp(long _timeStamp) throws InterruptedException {
+        long delta = _timeStamp - getTime();
+        if (delta>0) Thread.sleep(delta);
+    }
 }
