@@ -68,7 +68,7 @@ public class clContentIn extends clContent{
      */
     public byte[] getAudioBlockBuffer()
     {
-        int bufferSize = pv_blockLengthMs/1000*pv_pcmFormat.getOneSecondByteSize();
+        int bufferSize = pv_blockLengthMs*pv_pcmFormat.getOneMsByteSize();
         return new byte[bufferSize];
     }
 

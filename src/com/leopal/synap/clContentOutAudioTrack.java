@@ -35,7 +35,7 @@ public class clContentOutAudioTrack extends clContentOut{
                 pv_pcmFormat.getSampleRate(),
                 pv_pcmFormat.getAndroidChannelConfig(),
                 pv_pcmFormat.getAndroidEncodingFormat(),
-                pv_blockLengthMs/1000*5*pv_pcmFormat.getOneSecondByteSize(), //TODO Find a way to determine buffer size
+                pv_blockLengthMs*5*pv_pcmFormat.getOneMsByteSize(), //TODO Find a way to determine buffer size
                 AudioTrack.MODE_STREAM
         );
 

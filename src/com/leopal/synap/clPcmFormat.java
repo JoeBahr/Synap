@@ -68,9 +68,9 @@ public class clPcmFormat {
         return retValue;
     }
 
-    public int getOneSecondByteSize()
+    public int getOneMsByteSize()
     {
-        return getSampleRate()*getOneSampleByteSize();
+        return getSampleRate()*getOneSampleByteSize()/1000;
     }
 
     public int getOneSampleByteSize()
