@@ -2,6 +2,8 @@ package com.leopal.synap;
 
 import junit.framework.TestCase;
 
+import java.net.InetAddress;
+
 /**
  * Created by IntelliJ IDEA.
  * User: nicolas
@@ -11,14 +13,15 @@ import junit.framework.TestCase;
  */
 public class clSyncServerTest extends android.test.AndroidTestCase {
     public void testStartServer() throws Exception {
-        clSyncServer classToTest = new clSyncServer();
+        clSyncServerThread classToTest = new clSyncServerThread();
         classToTest.startServer();
 
-        clSyncClient classClient = new clSyncClient();
+        clSyncClientThread classClient = new clSyncClientThread();
+        classClient.setServer(InetAddress.getByName("127.0.0.1"));
         Thread.sleep(1000);
-        classClient.requestServer("127.0.0.1", 3000);
 
-        Thread.sleep(1000);
-        classToTest.stopServer();
+        long timeTmp = classClient.getTime();
+        assertEquals((int)(timeTmp/100), (int)(classToTest.getTime()/100)); //TODO: See how to ameliorate precision around 10 ms
+        //Thread.sleep(1000);
     }
 }

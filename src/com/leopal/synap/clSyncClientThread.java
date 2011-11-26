@@ -154,7 +154,7 @@ public class clSyncClientThread {
 				setDeltaDate(d1 - d2);
 				setDeltaValid(true);
 				
-				mainHandler.sendEmptyMessage(0);
+				//mainHandler.sendEmptyMessage(0);
 
 			}
 			ans = true;
