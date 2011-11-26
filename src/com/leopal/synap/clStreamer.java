@@ -1,13 +1,18 @@
 package com.leopal.synap;
 
+import android.util.Log;
+
 /**
  * This class manage the streaming of a contentIn
  *
  * @author nicolas
- * Date: 17/11/11
- * Time: 17:39
+ *         Date: 17/11/11
+ *         Time: 17:39
  */
 public class clStreamer {
+    /** Logging TAG*/
+    private static final String TAG = "clStreamer";
+
     /**
      * The source where content will be read
      */
@@ -24,14 +29,14 @@ public class clStreamer {
     private clTransport pv_transport;
 
     /**
-     * IP/Multicast address where to send audio packet
+     * IP/Multicast address for audio packet
      */
-    private String pv_destinationInet;
+    private String pv_contentStringInet;
 
     /**
      * Thread for main loop of streaming
      */
-    private Thread pv_threadStreamingMainLoop;
+    private Thread pv_threadMainLoop;
 
     /**
      * Constructor
@@ -50,30 +55,35 @@ public class clStreamer {
     /**
      * IP/Multicast address where to send audio packet
      *
-     * @param pv_destinationInet    String of the multicast address Ex "239.1.1.1"
+     * @param _Inet    String of the multicast address Ex "239.1.1.1"
      */
-    public void setDestinationInet(String pv_destinationInet) {
-        this.pv_destinationInet = pv_destinationInet;
+    public void setContentInet(String _Inet) {
+        this.pv_contentStringInet = _Inet;
     }
 
-    public String getDestinationInet() {
-        return pv_destinationInet;
+    public String getContentInet() {
+        return pv_contentStringInet;
     }
 
     public void start() {
-        if (pv_transport.commLinkInit(pv_destinationInet)==clTransport.COMM_LINK_OPEN)
+        if (pv_transport.commLinkInit(pv_contentStringInet)==clTransport.COMM_LINK_OPEN)
             if (!pv_contentIn.isEndOfContent()) {
-                pv_threadStreamingMainLoop = new Thread(new Runnable() {
+                pv_threadMainLoop = new Thread(new Runnable() {
                     public void run() {
+                        //Number of Sample read
+                        int sampleCount;
+                        //End request
+                        boolean endRequested = false;
                         //Prepare the buffer
                         byte[] buf = pv_contentIn.getAudioBlockBuffer();
                         int blockLength = pv_contentIn.getBlockLengthMs();
+                        //int sampleCount = pv_contentIn.getPcmFormat().
                         //Prepare playout in xx sec
                         long timeStamp = pv_syncServer.getTime()+3000; //TODO Transform this value as a parameter
 
                         //First Send
-                        pv_contentIn.readNextAudioBlock(buf);
-                        pv_transport.sSendData(buf,timeStamp,true);
+                        sampleCount = pv_contentIn.readNextAudioBlock(buf);
+                        pv_transport.sSendData(buf,timeStamp,true, sampleCount);
                         timeStamp+=blockLength;
                         //second Send to get advance
                         //pv_contentIn.readNextAudioBlock(buf);
@@ -82,27 +92,35 @@ public class clStreamer {
 
                         //Loop to read content while there is data
                         while( (!pv_contentIn.isEndOfContent())
-                                && (!pv_threadStreamingMainLoop.isInterrupted()) ) {
-                            pv_contentIn.readNextAudioBlock(buf);
-                            pv_transport.sSendData(buf,timeStamp,false);
+                                && (!endRequested) ) {
+                            sampleCount = pv_contentIn.readNextAudioBlock(buf);
+                            pv_transport.sSendData(buf,timeStamp,false, sampleCount);
                             timeStamp+=blockLength;
 
-                            try {
-                                Thread.sleep(blockLength);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                            //Log.i(TAG, "Send Samples " + sampleCount);
+
+                            if (Thread.interrupted()) {
+                                endRequested = true;
+                            } else {
+                                try {
+                                    //TODO: add a rateshaper algorithm better than that.../2
+                                    Thread.sleep(blockLength/2);
+                                } catch (InterruptedException e) {
+                                    endRequested = true;
+                                }
                             }
                         }
                     }
                 });
+                pv_threadMainLoop.start();
             }
     }
 
     public void stop() {
-        if (pv_threadStreamingMainLoop!=null) {
-            pv_threadStreamingMainLoop.interrupt();
+        if (pv_threadMainLoop !=null) {
+            pv_threadMainLoop.interrupt();
             try {
-                pv_threadStreamingMainLoop.join();
+                pv_threadMainLoop.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }

@@ -25,13 +25,13 @@ public class clStreamerTest extends AndroidTestCase {
 
     public void testStart() throws Exception {
         //Prepare test content
-        clContentIn contentIn = new clContentInWaveFile(1000);
+        clContentIn contentIn = new clContentInWaveFile(8);
         contentIn.openAudioInputStream(inputStream);
         assertEquals(false,contentIn.isEndOfContent());
 
         clStreamer classToTest = new clStreamer();
         classToTest.setContentIn(contentIn);
-        classToTest.setDestinationInet("239.1.1.1");
+        classToTest.setContentInet("239.1.1.1");
         classToTest.start();
         Thread.sleep(10000);
         classToTest.stop();
@@ -50,7 +50,7 @@ public class clStreamerTest extends AndroidTestCase {
 
         clStreamer classToTest = new clStreamer();
         classToTest.setContentIn(contentIn);
-        classToTest.setDestinationInet("239.1.1.1");
+        classToTest.setContentInet("239.1.1.1");
         classToTest.start();
         Thread.sleep(2000);
         classToTest.stop();
