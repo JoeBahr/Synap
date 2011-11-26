@@ -2,6 +2,10 @@ package com.leopal.synap;
 
 /**
  * Root class for content Playout
+ * Usage:
+ *   Setup play parameter
+ *   Queue content
+ *   Start play
  *
  * Creation information
  * @author nicolas
@@ -32,14 +36,14 @@ public class clContentOut extends clContent {
     /**
      * Start immediate playout of the queue
      */
-    public void startToPlay()
+    public void start()
     {
     }
 
     /**
      * Stop playout and flush the queue
      */
-    public void stopToPlay()
+    public void stop()
     {
     }
 

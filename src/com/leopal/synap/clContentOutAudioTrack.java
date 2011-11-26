@@ -60,19 +60,22 @@ public class clContentOutAudioTrack extends clContentOut{
      * Start immediate playout of the queue
      */
     @Override
-    public void startToPlay()
+    public void start()
     {
-        pv_audioTrack.play();
+        if (pv_audioTrack!=null)
+            pv_audioTrack.play();
     }
 
     /**
      * Stop playout and flush the queue
      */
     @Override
-    public void stopToPlay()
+    public void stop()
     {
-        pv_audioTrack.stop();
-        pv_audioTrack.flush();
+        if (pv_audioTrack!=null) {
+            pv_audioTrack.stop();
+            pv_audioTrack.flush();
+        }
     }
 
 }

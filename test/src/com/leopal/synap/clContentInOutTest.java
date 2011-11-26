@@ -30,7 +30,7 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
     }
 
     public void testReadNextAudioBlock() throws Exception {
-        clContentIn classToTest = new clContentInWaveFile(1000);
+        clContentIn classToTest = new clContentInWaveFile(8);
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
 
@@ -55,8 +55,9 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
      * @throws Exception
      */
     public void testStartToPlay() throws Exception {
-        clContentIn audioReader = new clContentInWaveFile(1000);
-        clContentOut classToTest = new clContentOutAudioTrack(1000);
+        int bufferLength = 20;
+        clContentIn audioReader = new clContentInWaveFile(bufferLength);
+        clContentOut classToTest = new clContentOutAudioTrack(bufferLength);
 
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);
@@ -66,7 +67,7 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
 
         int confResult = classToTest.setPlayoutParameter(detectedFormat.getBitDepth(),detectedFormat.getNumberOfChannel(),detectedFormat.getSampleRate());
         assertEquals(1,confResult);
-        classToTest.startToPlay();
+        classToTest.start();
 
         byte[] AudioBuff = audioReader.getAudioBlockBuffer();
         int sampleCount;
@@ -74,12 +75,12 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
         do{
             sampleCount = audioReader.readNextAudioBlock(AudioBuff);
             classToTest.queueAudioBlock(AudioBuff, sampleCount);
-            Thread.sleep(300);
+            Thread.sleep(bufferLength-3);
             totalSampleCount = totalSampleCount + sampleCount;
         } while (sampleCount!=0);
         //} while(totalSampleCount<441000);
 
         Thread.sleep(13000);
-        classToTest.stopToPlay();
+        classToTest.stop();
     }
 }
