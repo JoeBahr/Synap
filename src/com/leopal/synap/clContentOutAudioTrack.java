@@ -53,7 +53,8 @@ public class clContentOutAudioTrack extends clContentOut{
     @Override
     public void queueAudioBlock(byte[] _data, int _numberOfSample)
     {
-        pv_audioTrack.write(_data, 0, _numberOfSample*pv_pcmFormat.getOneSampleByteSize());
+        if (_numberOfSample>0)
+            pv_audioTrack.write(_data, 0, _numberOfSample*pv_pcmFormat.getOneSampleByteSize());
     }
 
     /**
