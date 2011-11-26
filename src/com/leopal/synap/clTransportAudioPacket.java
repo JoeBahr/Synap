@@ -18,5 +18,6 @@ public class clTransportAudioPacket implements java.io.Serializable {
 	int mSeqNumber = 0;
 	long mTimeStamp = 0;
 	byte mAudioData[];
+    int mAudioDataSampleCount=0;
 	int mCs = 0;
 }

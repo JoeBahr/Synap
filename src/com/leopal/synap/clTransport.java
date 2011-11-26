@@ -5,17 +5,23 @@ package com.leopal.synap;
  *  
  */
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.IOException;
+
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.SocketException;
 
 import android.util.Log;
 
 public class clTransport {
+    /** Logging TAG*/
+    private static final String TAG = "clTransport";
+
 	//Constant definition section
 	private static final int CST_FRAME_SIZE = 4*5;		//Int is 32bits long
 	
@@ -32,6 +38,8 @@ public class clTransport {
 	private short mcommLinkInit;
 	private boolean mRcvCsErr;
 	private boolean mRcvStartFrameIdErr;
+
+    private int rcvBufferSize;
 
 	/**
 	 * clTransport() class constructor.
@@ -51,6 +59,14 @@ public class clTransport {
 		mcommLinkInit = COMM_LINK_CLOSE;
 		mRcvCsErr = false;
 		mRcvStartFrameIdErr = false;
+
+        try {
+            mSocket = new MulticastSocket(TR_PORT);
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
+        //Default buffer size
+        setRcvBuffer(1600);
 	}
 	
 	/**
@@ -72,8 +88,7 @@ public class clTransport {
 			mGroup = InetAddress.getByName(multiCastAd);
 			if(mGroup.isMulticastAddress()) 						//multicast address only
 			{
-				mSocket = new MulticastSocket(TR_PORT);
-				mSocket.joinGroup(mGroup);
+                mSocket.joinGroup(mGroup);
 				mcommLinkInit = COMM_LINK_OPEN;
 			}
 			else
@@ -124,20 +139,17 @@ public class clTransport {
 	 * sSendData() is used by the sender to send data to a group if a communication link is established.
 	 * 
 	 *  
-	 * @param byte[] buf Audio packet to send     
-	 * @param byte[] int TimeStamp related to the audio packet
-	 * @param boolean firstAudioTrasnfer  	true => a new file transfer begins
-	 * 										false => mSeqNumber is incremented
-	 *                            	 
-	 * @return 	true => initialization OK
+	 *
+     * @param sampleCount
+     * @return 	true => initialization OK
 	 * 			false => initialization KO
 	 *
 	 */		
-	public boolean sSendData(byte[] buf, long timeStamp, boolean firstAudioTransfer){
+	public boolean sSendData(byte[] buf, long timeStamp, boolean firstAudioTransfer, int sampleCount){
 		boolean returnValue = false;
 		if(mcommLinkInit == COMM_LINK_OPEN)
 		{
-			preparePacketToSend(buf, timeStamp, firstAudioTransfer); 
+			preparePacketToSend(buf, timeStamp, firstAudioTransfer, sampleCount);
 			try
 			{
 				ByteArrayOutputStream outStream = new ByteArrayOutputStream();
@@ -179,9 +191,9 @@ public class clTransport {
 			returnValue = 1;
 			try
 			{
-				byte[] buf = new byte[65535];				
-				ByteArrayInputStream inputStream  = new ByteArrayInputStream(buf);
-				DatagramPacket rcvPacket = new DatagramPacket(buf, buf.length);
+                byte[] rcvBuffer = new byte[rcvBufferSize];
+                ByteArrayInputStream inputStream  = new ByteArrayInputStream(rcvBuffer);
+				DatagramPacket rcvPacket = new DatagramPacket(rcvBuffer, rcvBufferSize);
 
 				mSocket.receive(rcvPacket);
 				
@@ -193,20 +205,20 @@ public class clTransport {
 				mRcvCsErr = false;
 				if(mAudioPacket.mStartFrameId != mAudioPacket.getStartFrameId())
 				{
-					Log.d("Rcv", "Start Frame Id OK");
+					Log.d(TAG, "Start Frame Id OK");
 					mRcvStartFrameIdErr = true;
 					returnValue = 2;
 				}
 				if(mAudioPacket.mCs != computeCs(mAudioPacket.mAudioData, mAudioPacket.mAudioData.length))
 				{
-					Log.d("Rcv", "CS KO");
+					Log.d(TAG, "CS KO");
 					mRcvCsErr = true;
 					returnValue = 3;
 				}	
 			}
 			catch(Exception e)
 			{
-				Log.e("sSendData()", "Error", e);
+				Log.e(TAG, "rReceiveData Error", e);
 				returnValue = 4;
 			}
 		}
@@ -228,18 +240,15 @@ public class clTransport {
 	 * [SEQ_NUMBER] int (4 Bytes)  mSeqNumber class clTransportAudioPacket
 	 * [TIME_STAMP] int (4 Bytes)  mTimeStamp class clTransportAudioPacket
 	 * [AUDIO_DATA] buf (n Bytes)  mAudioData class clTransportAudioPacket
+     * [AUDIO_SAMPLE_COUNT]           mAudioDataSampleCount;
 	 * [CHECKSUM]	int (4 Bytes)  mCs		  class clTransportAudioPacket	(compute on mAudioData only in this version)
-	 *   
-	 * @param byte[] buf Audio packet to send     
-	 * @param byte[] int TimeStamp related to the audio packet
-	 * @param boolean firstAudioTrasnfer  	true => a new file transfer begins
-	 * 										false => mSeqNumber is incremented
-	 * 
-	 * @return byte[]	the packet ready to send
+	 *
+     * @param sampleCount
+     * @return byte[]	the packet ready to send
 	 *
 	 */
-	private void preparePacketToSend(byte[] buf, long timeStamp, boolean firstAudioTransfer) {
-		
+	private void preparePacketToSend(byte[] buf, long timeStamp, boolean firstAudioTransfer, int sampleCount) {
+		//TODO: Add a test to validate the size of buf according to allocated buf
 		if(firstAudioTransfer)
 		{
 			mAudioPacket.mSeqNumber = 0;
@@ -254,7 +263,8 @@ public class clTransport {
 		//[SEQ_NUMBER] set above
 		mAudioPacket.mTimeStamp = timeStamp;//[TIME_STAMP]
 		mAudioPacket.mAudioData = buf;		//[AUDIO_DATA] 
-		mAudioPacket.mCs = computeCs(buf, buf.length);
+		mAudioPacket.mAudioDataSampleCount = sampleCount;
+        mAudioPacket.mCs = computeCs(buf, buf.length);
 	}
 	
 	/**
@@ -279,6 +289,26 @@ public class clTransport {
 		//Code error to return
 		return cs;
 	}
+
+    /**
+     * Define the buffer size
+     *
+     * @param _size Size of the receive buffer in byte
+     *
+     * @return true Operation succeeded
+     *              Operation failed
+     */
+    public boolean setRcvBuffer(int _size){
+        boolean result;
+        rcvBufferSize=_size*2; //TODO: Optimize the size of buffer (*2 is a security less necessary)
+        try {
+            mSocket.setReceiveBufferSize(rcvBufferSize);
+            result = true;
+        } catch (SocketException e) {
+            result = false;
+        }
+        return result;
+    }
 }
 
 
