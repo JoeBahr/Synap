@@ -9,16 +9,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class SynapActivity extends Activity {
+public class MyActivity extends Activity {
    
 	private clStreamer synapStreamer;
 	private clReceiver synapReceiver;
-	
+
+    private Button serverInitButton;
 	private Button serverStartButton;
 	private Button serverStopButton;
 	private Button clientStartButton;
 	private Button clientStopButton;
-	
+
 	private InputStream inputStream;
 	
 	private String mServerIP;
@@ -32,14 +33,37 @@ public class SynapActivity extends Activity {
         
         EditText lTextIP = ((EditText)this.findViewById(R.id.server_ip));
         mServerIP = lTextIP.getText().toString();
-        
+
+        /* Button init server */
+        serverInitButton = (Button)this.findViewById(R.id.server_init);
+        serverInitButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View viewParam) {
+                inputStream = getResources().openRawResource(R.raw.audio_44100_16bits_2channels_extract);
+                clContentIn contentIn = new clContentInWaveFile(16);
+                try {
+                    contentIn.openAudioInputStream(inputStream);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+
+                synapStreamer = new clStreamer();
+                synapStreamer.setContentIn(contentIn);
+                synapStreamer.setContentInet("224.0.0.1");
+                //synapStreamer.start();
+
+            }
+        });
+
         /* Button start server */
         serverStartButton = (Button)this.findViewById(R.id.server_start);
         serverStartButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View viewParam) {
-				inputStream = getResources().openRawResource(R.raw.audio_44100_16bits_2channels_extract);
+				/*inputStream = getResources().openRawResource(R.raw.audio_44100_16bits_2channels_extract);
 				clContentIn contentIn = new clContentInWaveFile(8);
 		        try {
 					contentIn.openAudioInputStream(inputStream);
@@ -50,7 +74,7 @@ public class SynapActivity extends Activity {
 		        
 		        synapStreamer = new clStreamer();
 		        synapStreamer.setContentIn(contentIn);
-		        synapStreamer.setContentInet("224.0.0.1");
+		        synapStreamer.setContentInet("224.0.0.1");*/
 		        synapStreamer.start();
 		        
         	}
@@ -79,14 +103,15 @@ public class SynapActivity extends Activity {
 			
 			@Override
 			public void onClick(View viewParam) {
-				clContentOut contentOut = new clContentOutAudioTrack(15);
+				clContentOut contentOut = new clContentOutAudioTrack(40);
 		        String mcastIP = "224.0.0.1";
-		        
+
+                contentOut.setPlayoutParameter(16,2,44100);
+
 		        synapReceiver = new clReceiver();
 		        synapReceiver.setContentInet(mcastIP);
 		        synapReceiver.setServerInet(mServerIP);
 		        synapReceiver.setContentOut(contentOut);
-		        contentOut.setPlayoutParameter(16,2,44100);
 
 		        synapReceiver.start();
 		        

@@ -39,7 +39,7 @@ public class clContentOutAudioTrack extends clContentOut{
                 AudioTrack.MODE_STREAM
         );
 
-        if (pv_audioTrack.getState()!=0)
+        if (pv_audioTrack.getState()>=0)
             return 1;
         else
             return 0;
