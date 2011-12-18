@@ -7,6 +7,7 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 public class SynapActivity extends Activity {
    
@@ -20,12 +21,17 @@ public class SynapActivity extends Activity {
 	
 	private InputStream inputStream;
 	
+	private String mServerIP;
+	
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
+        
+        EditText lTextIP = ((EditText)this.findViewById(R.id.server_ip));
+        mServerIP = lTextIP.getText().toString();
         
         /* Button start server */
         serverStartButton = (Button)this.findViewById(R.id.server_start);
@@ -75,11 +81,10 @@ public class SynapActivity extends Activity {
 			public void onClick(View viewParam) {
 				clContentOut contentOut = new clContentOutAudioTrack(15);
 		        String mcastIP = "224.0.0.1";
-		        String ipServer = "192.168.1.50";
-
+		        
 		        synapReceiver = new clReceiver();
 		        synapReceiver.setContentInet(mcastIP);
-		        synapReceiver.setServerInet(ipServer);
+		        synapReceiver.setServerInet(mServerIP);
 		        synapReceiver.setContentOut(contentOut);
 		        contentOut.setPlayoutParameter(16,2,44100);
 

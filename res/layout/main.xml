@@ -20,6 +20,15 @@
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
 	    android:text="Stop server" />
+
+	<EditText
+	    android:id="@+id/server_ip"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:text="192.168.0.50">
+
+	    <requestFocus />
+	</EditText>
 	
 	<Button
 	    android:id="@+id/client_start"
