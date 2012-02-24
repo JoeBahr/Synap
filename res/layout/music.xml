@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+      android:orientation="vertical" android:layout_width="fill_parent"
+      android:layout_height="fill_parent">
+      	<ImageView
+          android:id="@+id/icon"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:src="@drawable/ic_launcher"/>
+		<TextView
+		    android:id="@+id/MusicList"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:textSize="16sp"/>
+</LinearLayout -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="6dp">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="27dp"
+        android:layout_height="27dp"
+        android:layout_weight="0.02"
+        android:paddingRight="3dp"
+        android:src="@drawable/ic_menu_music" />
+
+   <TextView
+       android:id="@+id/music"
+       android:layout_width="0dp"
+       android:layout_height="wrap_content"
+       android:layout_weight="1"
+       android:ellipsize="end"
+       android:paddingLeft="3dp"
+       android:paddingRight="3dp"
+       android:singleLine="true"
+       android:textAppearance="?android:attr/textAppearanceLarge" />
+
+   <ImageView
+       android:id="@+id/cmd_play"
+       android:layout_width="27dp"
+       android:layout_height="27dp"
+       android:paddingLeft="3dp"
+       android:paddingRight="3dp"
+       android:layout_weight="0.02" />
+ 
+    <ImageView
+        android:id="@+id/cmd_append"
+        android:layout_width="27dp"
+        android:layout_height="27dp"
+        android:paddingLeft="3dp"
+        android:layout_weight="0.02" />
+ 
+</LinearLayout>

@@ -16,6 +16,12 @@
             android:text="Init server" />
 
 	<Button
+	    android:id="@+id/select_file"
+	    android:layout_width="fill_parent"
+	    android:layout_height="wrap_content"
+	    android:text="Select file" />
+	
+	<Button
 	    android:id="@+id/server_start"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
@@ -35,7 +41,7 @@
 	    android:id="@+id/server_ip"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:text="192.168.0.51">
+	    android:text="192.168.88.173">
 
 	    <requestFocus />
 	</EditText>

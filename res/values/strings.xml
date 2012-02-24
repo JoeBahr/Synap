@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">synap</string>
+
+    <string name="hello">Hello World, SynapActivity!</string>
+    <string name="app_name">Synap</string>
+    <string name="local_service_started">Synap streamer has started</string>
+    <string name="local_service_stopped">Synap streamer has stopped</string>
+    <string name="local_service_label">Synap streamer service</string>
+        
 </resources>
