@@ -50,6 +50,13 @@ public class clContentInWaveFile extends clContentIn {
     }
 
     @Override
+    public void openAudioBufferedInputStream(BufferedInputStream _file)
+    throws IOException {
+        pv_audioFile = new BufferedInputStream(_file);
+        AudioFileWave_ReadHeader(pv_audioFile);
+    }
+
+    @Override
     public int readNextAudioBlock(byte[] _data)
     {
         int sampleCount = 0;

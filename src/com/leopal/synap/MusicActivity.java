@@ -70,7 +70,7 @@ public class MusicActivity extends ListActivity {
 		}
 	};
 
-	// playlist Service connections
+	// Streamer Service connections
 	private boolean serviceStreamerIsBound;
 	private clStreamerService serviceStreamer;
 
@@ -218,11 +218,11 @@ public class MusicActivity extends ListActivity {
 	};
 
 	private void updatePlayImage(String filename, ImageView play) {
-		String playingFileName = "";
+		boolean played = false;
 		if (servicePlaylist != null) {
-			playingFileName = servicePlaylist.getPlayed();
+			played = servicePlaylist.isPlayed(filename);
 		}
-		if (filename.compareTo(playingFileName) == 0) {
+		if (played) {
 			play.setImageResource(R.drawable.ic_menu_pause);
 		} else {
 			play.setImageResource(R.drawable.ic_menu_play);

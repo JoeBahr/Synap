@@ -143,13 +143,13 @@ public class clPlaylistService extends Service {
 			playList = new ArrayList<String>();
 		}
 		Byte action;
-		if (filenamePlaying == file) {
+		if (filenamePlaying.compareTo(file)==0) {
 			if (playPaused) {
 				action = PLAYLIST_RESUME;
 				playPaused = false;
 			} else {
 				action = PLAYLIST_PAUSE;
-				playPaused = false;
+				playPaused = true;
 			}
 		} else {
 			filePlayingIndex = findInPlayList(file);
@@ -166,7 +166,13 @@ public class clPlaylistService extends Service {
 	}
 
 	public boolean isPlayed(String file) {
-		return (filenamePlaying == file);
+		boolean played = false;
+		if (filenamePlaying.compareTo(file)==0) {
+			if (!playPaused){
+				played = true;
+			}
+		}
+		return (played);
 	}
 
 	public String getPlayed() {
@@ -178,6 +184,23 @@ public class clPlaylistService extends Service {
 		if (filePlayingIndex == playList.size()) {
 			filePlayingIndex = 0;
 		}
+		filenamePlaying = playList.get(filePlayingIndex);
+		playPaused = false;
+		if (listeners != null) {
+			fireDataChanged(PLAYLIST_PLAY);
+		}
 		return playList.get(filePlayingIndex);
+	}
+	
+	public void moveNext() {
+		filePlayingIndex++;
+		if (filePlayingIndex == playList.size()) {
+			filePlayingIndex = 0;
+		}
+		filenamePlaying = playList.get(filePlayingIndex);
+		playPaused = false;
+		if (listeners != null) {
+			fireDataChanged(PLAYLIST_PLAY);
+		}
 	}
 }

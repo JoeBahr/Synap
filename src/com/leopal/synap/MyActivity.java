@@ -1,15 +1,21 @@
 package com.leopal.synap;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class MyActivity extends Activity {
+public class MyActivity extends Activity { 
    
 	private clStreamer synapStreamer;
 	private clReceiver synapReceiver;
@@ -21,6 +27,8 @@ public class MyActivity extends Activity {
 	private Button clientStopButton;
 
 	private InputStream inputStream;
+	
+	private BufferedInputStream bufferedInputStream;
 	
 	private String mServerIP;
 	
@@ -38,12 +46,24 @@ public class MyActivity extends Activity {
         serverInitButton = (Button)this.findViewById(R.id.server_init);
         serverInitButton.setOnClickListener(new View.OnClickListener() {
 
-            @Override
+        	@Override
             public void onClick(View viewParam) {
-                inputStream = getResources().openRawResource(R.raw.audio_44100_16bits_2channels_extract);
+        		File f = new File(Environment.getExternalStorageDirectory() 
+                        + File.separator + "Music" + File.separator + "rhcp_atw.wav");
+                InputStream lInputStream = null;
+        		try {
+        			lInputStream = new FileInputStream(f);
+        		} catch (FileNotFoundException e1) {
+        			// TODO Auto-generated catch block
+        			e1.printStackTrace();
+        		}
+            
+                bufferedInputStream = new BufferedInputStream(lInputStream);
+                
+                //inputStream = getResources().openRawResource(R.raw.rhcp_atw);
                 clContentIn contentIn = new clContentInWaveFile(16);
                 try {
-                    contentIn.openAudioInputStream(inputStream);
+                    contentIn.openAudioBufferedInputStream(bufferedInputStream);
                 } catch (IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
@@ -53,6 +73,18 @@ public class MyActivity extends Activity {
                 synapStreamer.setContentIn(contentIn);
                 synapStreamer.setContentInet("224.0.0.1");
                 //synapStreamer.start();
+
+            }
+        });
+
+        /* Button select file */
+        serverInitButton = (Button)this.findViewById(R.id.select_file);
+        serverInitButton.setOnClickListener(new View.OnClickListener() {
+
+        	@Override
+            public void onClick(View viewParam) {
+                Intent myIntent = new Intent(viewParam.getContext(), StreamerActivity.class);
+                startActivityForResult(myIntent, 0);
 
             }
         });

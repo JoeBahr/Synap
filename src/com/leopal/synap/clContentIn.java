@@ -1,5 +1,6 @@
 package com.leopal.synap;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -29,6 +30,10 @@ public class clContentIn extends clContent{
      * @throws java.io.IOException
      */
     public void openAudioInputStream(InputStream _file)
+    throws IOException {
+    }
+
+    public void openAudioBufferedInputStream(BufferedInputStream _file)
     throws IOException {
     }
 
