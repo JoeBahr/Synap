@@ -1,84 +1,43 @@
 package com.leopal.synap;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
 
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.IBinder;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.View.OnClickListener;
+import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 public class MyActivity extends Activity { 
    
-	private clStreamer synapStreamer;
 	private clReceiver synapReceiver;
 
-    private Button serverInitButton;
-	private Button serverStartButton;
-	private Button serverStopButton;
-	private Button clientStartButton;
-	private Button clientStopButton;
-
-	private InputStream inputStream;
-	
-	private BufferedInputStream bufferedInputStream;
-	
-	private String mServerIP;
+    StreamerListAdapter streamerAdapter;
+	int countStreamers;
+	private ListView list;
+	private LinearLayout emptyList;
 	
 	/** Called when the activity is first created. */
-    @Override
+    
     public void onCreate(Bundle savedInstanceState) {
         
     	super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
-        EditText lTextIP = ((EditText)this.findViewById(R.id.server_ip));
-        mServerIP = lTextIP.getText().toString();
-
-        /* Button init server */
-        serverInitButton = (Button)this.findViewById(R.id.server_init);
-        serverInitButton.setOnClickListener(new View.OnClickListener() {
-
-        	@Override
-            public void onClick(View viewParam) {
-        		File f = new File(Environment.getExternalStorageDirectory() 
-                        + File.separator + "Music" + File.separator + "rhcp_atw.wav");
-                InputStream lInputStream = null;
-        		try {
-        			lInputStream = new FileInputStream(f);
-        		} catch (FileNotFoundException e1) {
-        			// TODO Auto-generated catch block
-        			e1.printStackTrace();
-        		}
-            
-                bufferedInputStream = new BufferedInputStream(lInputStream);
-                
-                //inputStream = getResources().openRawResource(R.raw.rhcp_atw);
-                clContentIn contentIn = new clContentInWaveFile(16);
-                try {
-                    contentIn.openAudioBufferedInputStream(bufferedInputStream);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-
-                synapStreamer = new clStreamer();
-                synapStreamer.setContentIn(contentIn);
-                synapStreamer.setContentInet("224.0.0.1");
-                //synapStreamer.start();
-
-            }
-        });
-
         /* Button select file */
-        serverInitButton = (Button)this.findViewById(R.id.select_file);
+        Button serverInitButton = (Button)this.findViewById(R.id.start_streamer);
         serverInitButton.setOnClickListener(new View.OnClickListener() {
 
         	@Override
@@ -88,78 +47,203 @@ public class MyActivity extends Activity {
 
             }
         });
+        ((TextView)this.findViewById(R.id.title_streamer)).setBackgroundColor(Color.GRAY);
+        ((TextView)this.findViewById(R.id.title_streamer)).setTextColor(Color.WHITE);
+        init_streamers_grid();
+        doBindService();
+    }
+    @Override
+	protected void onDestroy() {
+		super.onDestroy();
+	}
 
-        /* Button start server */
-        serverStartButton = (Button)this.findViewById(R.id.server_start);
-        serverStartButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View viewParam) {
-				/*inputStream = getResources().openRawResource(R.raw.audio_44100_16bits_2channels_extract);
-				clContentIn contentIn = new clContentInWaveFile(8);
-		        try {
-					contentIn.openAudioInputStream(inputStream);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+	private void init_streamers_grid() {
+		countStreamers = 0;
+		streamerAdapter = new StreamerListAdapter();
+		list = (ListView) findViewById(R.id.StreamersList);
+		
+		list.setAdapter(streamerAdapter);
+		emptyList = (LinearLayout) findViewById(R.id.Search);
+		
+		if (list.getCount() == 0) {
+			emptyList.setVisibility(View.VISIBLE);
+		} else {
+			emptyList.setVisibility(View.INVISIBLE);
+		}
+	}
+	
+	// Announcement Service connections
+	private boolean serviceAnnouncementIsBound;
+	private clAnnouncementService serviceAnnouncement;
+
+	final clAnnouncementServiceListener streamerServiceListener = new clAnnouncementServiceListener() {
+		public void dataChanged(Byte action) {
+			MyActivity.this.runOnUiThread(new Runnable() {
+				public void run() {
+					if (serviceAnnouncement.getSize() > 0 ) {
+						streamerAdapter.addItem(serviceAnnouncement.getListItem(0));
+						streamerAdapter.notifyDataSetChanged();
+					}
 				}
-		        
-		        synapStreamer = new clStreamer();
-		        synapStreamer.setContentIn(contentIn);
-		        synapStreamer.setContentInet("224.0.0.1");*/
-		        synapStreamer.start();
-		        
-        	}
-        });
-        
-        /* button stop server */
-        serverStopButton = (Button)this.findViewById(R.id.server_stop);
-        serverStopButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View viewParam) {
-				synapStreamer.stop();
-		        try {
-					inputStream.reset();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+			});
+		}
+	};
+
+	private ServiceConnection serviceAnnouncementConnection = new ServiceConnection() {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			serviceAnnouncement = ((clAnnouncementService.LocalBinder) service)
+					.getService();
+			serviceAnnouncement.addListener(streamerServiceListener);
+		}
+
+		public void onServiceDisconnected(ComponentName className) {
+			serviceAnnouncement = null;
+		}
+	};
+	
+	void doBindService() {
+		// bindService(...) is not directly available in childs of TabHost.
+		// requires usage of getApplicationContext()
+		bindService(new Intent(MyActivity.this, clAnnouncementService.class),
+				serviceAnnouncementConnection, Context.BIND_AUTO_CREATE);
+		serviceAnnouncementIsBound = true;
+	}
+
+	void doUnbindService() {
+		if (serviceAnnouncementIsBound) {
+			getApplicationContext().unbindService(serviceAnnouncementConnection);
+			serviceAnnouncementIsBound = false;
+		}
+	}
+
+	public class StreamerListAdapter extends BaseAdapter {
+
+		private ArrayList<clSynapEntity> mData = new ArrayList<clSynapEntity>();
+		
+		public StreamerListAdapter() {
+			initialize();
+		}
+		
+		public void initialize() {
+			mData.clear();
+			notifyDataSetChanged();
+		}
+
+		public void addItem(final clSynapEntity item) {
+			emptyList.setVisibility(View.INVISIBLE);
+			mData.add(item);
+		}
+
+		public void removeItem(final clSynapEntity item) {
+			for (int i = 0; i < mData.size(); i++) {
+				if (mData.get(i).equals(item)) {
+					mData.remove(i);
 				}
-		        
-        	}
-        });
-        
-        /* Button start client */
-        clientStartButton = (Button)this.findViewById(R.id.client_start);
-        clientStartButton.setOnClickListener(new View.OnClickListener() {
+			}
+		}
+
+		public void removeItem(final int index) {
+			mData.remove(index);
+		}
+
+		public int getCount() {
+			return mData.size();
+		}
+
+		public clSynapEntity getItem(int position) {
+			return mData.get(position);
+		}
+
+		public long getItemId(int position) {
+			return position;
+		}
+
+		private class StreamerListViewHolder {
+			public ImageView image;
+			public TextView texte;
+			public ImageView play;
+			//public ImageView append;
+		}
+		
+		public View getView(int position, View convertView, ViewGroup parent) {
+			System.gc();
+			StreamerListViewHolder streamerListHolder;
 			
-			@Override
-			public void onClick(View viewParam) {
+			if (convertView == null) {
+				// TODO : replace reuse of music Layout by a dedicated layout (or not)
+				convertView = getLayoutInflater().inflate(R.layout.music,
+						parent, false);
+				streamerListHolder = new StreamerListViewHolder();
+				streamerListHolder.image = (ImageView) convertView
+						.findViewById(R.id.icon);
+				streamerListHolder.texte = (TextView) convertView
+						.findViewById(R.id.music);
+				streamerListHolder.play = (ImageView) convertView
+						.findViewById(R.id.cmd_play);
+				//streamerListHolder.append = (ImageView) convertView
+					//	.findViewById(R.id.cmd_append);
+				streamerListHolder.play.setClickable(true);
+				streamerListHolder.play.setOnClickListener(buttonPlayClickListener);
+				/* not used
+				 * streamerListHolder.append.setClickable(true);
+				 * streamerListHolder.append
+						.setOnClickListener(buttonAppendClickListener);
+				 */
+				
+				convertView.setTag(streamerListHolder);
+			} else {
+				streamerListHolder = (StreamerListViewHolder) convertView.getTag();
+			}
+			clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);;
+			streamerListHolder.image.setImageResource(R.drawable.ic_menu_feed);
+			String currentIP = "";
+			if (synapReceiver != null) {
+				synapReceiver.stop();
+				currentIP = synapReceiver.getServerInet();
+			}
+			if (lSynapEntity.getIpAdress().compareTo(currentIP) == 0) {
+				streamerListHolder.play.setImageResource(R.drawable.ic_menu_cancel);
+			} else {
+				streamerListHolder.play.setImageResource(R.drawable.ic_menu_play);
+			}
+			streamerListHolder.texte.setText(lSynapEntity.getStreamInfo());
+			
+			return convertView;
+		}
+	}
+	private void setPlayIcon(ImageView play, String streamerIp) {
+		
+	}
+	private OnClickListener buttonPlayClickListener = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			
+			final int position = list.getPositionForView(v);
+			clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);
+			String streamerIp = lSynapEntity.getIpAdress();
+			ImageView play = (ImageView)list.findViewById(R.id.cmd_play);
+			String currentIP = "";
+			
+			if (synapReceiver != null) {
+				synapReceiver.stop();
+				currentIP = synapReceiver.getServerInet();
+			}
+			if (streamerIp.compareTo(currentIP) == 0) {
+				play.setImageResource(R.drawable.ic_menu_play);
+			} else {
 				clContentOut contentOut = new clContentOutAudioTrack(40);
 		        String mcastIP = "224.0.0.1";
-
                 contentOut.setPlayoutParameter(16,2,44100);
-
 		        synapReceiver = new clReceiver();
 		        synapReceiver.setContentInet(mcastIP);
-		        synapReceiver.setServerInet(mServerIP);
+		        synapReceiver.setServerInet(streamerIp);
 		        synapReceiver.setContentOut(contentOut);
-
 		        synapReceiver.start();
-		        
-        	}
-        });
-        
-        /* button stop server */
-        clientStopButton = (Button)this.findViewById(R.id.client_stop);
-        clientStopButton.setOnClickListener(new View.OnClickListener() {
+				play.setImageResource(R.drawable.ic_menu_cancel);
+			}
 			
-			@Override
-			public void onClick(View viewParam) {
-				synapReceiver.stop();
-		        
-        	}
-        });
-    }
+
+		}
+	};
 
 }

@@ -4,57 +4,44 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <TextView
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name" />
-
     <Button
-            android:id="@+id/server_init"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Init server" />
+        android:id="@+id/start_streamer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Start Streaming" />
 
-	<Button
-	    android:id="@+id/select_file"
+	<TextView
+	    android:id="@+id/title_streamer"
 	    android:layout_width="fill_parent"
 	    android:layout_height="wrap_content"
-	    android:text="Select file" />
-	
-	<Button
-	    android:id="@+id/server_start"
+	    android:text=" Or choose an available streamers" />
+	
+	<ListView
+	    android:id="@+id/StreamersList"
 	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Start server" />
-	
-	<Button
-	    android:id="@+id/server_stop"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Stop server" />
+	    android:layout_height="wrap_content" />
 
+  	<LinearLayout
+  	    android:id="@+id/Search"
+  	    android:layout_width="match_parent"
+    	android:layout_height="wrap_content"
+    	android:orientation="horizontal"
+    	android:padding="6dp">
 
+  		<ProgressBar
+  		    android:id="@+id/progressBar"
+  		    android:layout_width="26dp"
+  		    android:layout_height="26dp"/>
 
+  		<TextView
+  		    android:id="@+id/searchInfo"
+       		android:layout_width="0dp"
+       		android:layout_height="wrap_content"
+       		android:layout_weight="1"
+       		android:ellipsize="end"
+       		android:paddingLeft="6dp"
+       		android:singleLine="true"
+       		android:text="Search in progress..." />
 
-
-	<EditText
-	    android:id="@+id/server_ip"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:text="192.168.88.173">
-
-	    <requestFocus />
-	</EditText>
-	
-	<Button
-	    android:id="@+id/client_start"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Start client" />
-	
-	<Button
-	    android:id="@+id/client_stop"
-	    android:layout_width="fill_parent"
-	    android:layout_height="wrap_content"
-	    android:text="Stop client" />
+  	</LinearLayout>
 </LinearLayout>

@@ -33,7 +33,8 @@
             </intent-filter>
         </activity>
         <service android:name=".clPlaylistService" />
-        <service android:name=".clStreamerService" />        
+        <service android:name=".clStreamerService" />
+        <service android:name=".clAnnouncementService" />        
     </application>
 
 </manifest>
