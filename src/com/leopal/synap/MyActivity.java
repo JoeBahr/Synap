@@ -285,6 +285,7 @@ public class MyActivity extends Activity {
 		        synapReceiver.setServerInet(streamerIp);
 		        synapReceiver.setContentOut(contentOut);
 		        synapReceiver.start();
+		        synapReceiver.run();
 				play.setImageResource(R.drawable.ic_menu_cancel);
 			}
 			
