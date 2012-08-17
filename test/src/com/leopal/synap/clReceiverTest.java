@@ -22,7 +22,7 @@ public class clReceiverTest extends AndroidTestCase {
         clStreamer streamer = new clStreamer();
 
         clContentIn contentIn = new clContentInWaveFile(16);
-        clContentOut contentOut = new clContentOutAudioTrack(20);
+        clContentOut contentOut = new clContentOutAudioTrack(1000);
         contentIn.openAudioInputStream(inputStream);
         assertEquals(1,contentOut.setPlayoutParameter(16,2,44100));
 

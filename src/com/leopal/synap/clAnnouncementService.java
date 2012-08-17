@@ -40,7 +40,7 @@ public class clAnnouncementService extends Service {
 			        public void run() {
 		            	clSynapEntity object = new clSynapEntity();
 		            	i++;
-		            	String s = "192.168.1.";
+		            	String s = "192.168.0.";
 		            	s = s + i;
 		        		object.setIpAdress(s);
 		        		object.setName("Nicolas");

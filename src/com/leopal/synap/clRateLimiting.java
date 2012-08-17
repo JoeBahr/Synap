@@ -29,7 +29,7 @@ public class clRateLimiting {
     /**
      * Wait time between two loop of rate shaping test when dataslot not available
      */
-    private static final int pv_SleepLoopMs = pv_MainPeriodInMs/pv_NumberOfSubperiod/10;
+    private static final int pv_SleepLoopMs = pv_MainPeriodInMs/pv_NumberOfSubperiod/100;
 
     /**
      * This table holds the quantity of data sent during each subPeriod
@@ -68,8 +68,8 @@ public class clRateLimiting {
                 if (notFirstLoop) Thread.sleep(pv_SleepLoopMs);
                 calculateTableSlot();
                 currentBitrate = calculateDataSentTotalDuringPeriod();
-                Log.d(TAG, "Slot= " + String.valueOf(pv_TableLastSlotNumber)+" -Time= "+String.valueOf(pv_TableLastSlotTime));
-                Log.d(TAG, "Bitrate= " + String.valueOf(currentBitrate));
+                //Log.d(TAG, "Slot= " + String.valueOf(pv_TableLastSlotNumber)+" -Time= "+String.valueOf(pv_TableLastSlotTime));
+                //Log.d(TAG, "Bitrate= " + String.valueOf(currentBitrate));
 
                 if (!notFirstLoop) notFirstLoop = true;
             } while (((currentBitrate + _dataBitSize)>=pv_MaximumBitrate) && (_dataBitSize<pv_MaximumBitrate) );

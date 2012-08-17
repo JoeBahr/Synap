@@ -29,8 +29,9 @@ public class clContentOut extends clContent {
      * @param _data    A byte array containing raw audio data
      * @param _numberOfSample Number of sample in the buffer
      */
-    public void queueAudioBlock(byte[] _data, int _numberOfSample)
+    public boolean queueAudioBlock(byte[] _data, int _numberOfSample)
     {
+        return false;
     }
 
     /**

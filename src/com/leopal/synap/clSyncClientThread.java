@@ -13,11 +13,22 @@ import java.net.Socket;
 import java.util.Date;
 
 import android.os.Handler;
+import android.util.Log;
 
 
 public class clSyncClientThread {
 
-	/**
+    /**
+     * TCP port = 37
+     */
+    private static final String TAG="clSyncClientThread";
+
+    /**
+     * First request delay before returning
+     */
+    private static final int FIRST_REQUEST_DELAY_MS=2000;
+
+    /**
 	 * TCP port = 37
 	 */
 	private static final int TCP_PORT=3737;
@@ -43,12 +54,12 @@ public class clSyncClientThread {
 	 * isValid ?
 	 */
 	private boolean deltaValid;
-	
+
 	/**
 	 * Thread of the client
 	 */
 	private Thread ClientThread;
-	
+
 	/**
 	 * Input Stream on socket
 	 */
@@ -91,16 +102,25 @@ public class clSyncClientThread {
         	}
         });
 		ClientThread.start();
-		return true;
-				
+
+        //Wait 2sec for first synchro or return false
+        long _time = new Date().getTime();
+        long _expTime=_time+FIRST_REQUEST_DELAY_MS;
+        while(!isDeltaValid() && (_time<_expTime)){
+            try {
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
+            _time = new Date().getTime();
+        };
+		return isDeltaValid();
 	}
 
 	/**
 	 * Function to build an NTP request  
 	 *
-	 * @param none
-	 * 
-	 * @return if a request has been built and sent 
+	 * @return if a request has been built and sent
 	 *
 	 */
 	private boolean sendRequest() {
@@ -155,7 +175,7 @@ public class clSyncClientThread {
 				setDeltaValid(true);
 				
 				//mainHandler.sendEmptyMessage(0);
-
+                Log.v(TAG, "New Delta calculated(ms)="+deltaDate);
 			}
 			ans = true;
 			
@@ -170,9 +190,7 @@ public class clSyncClientThread {
 	/**
 	 * Function to get create connection to server
 	 *
-	 * @param none
-	 * 
-	 * @return if the socket has been created 
+	 * @return if the socket has been created
 	 *
 	 */
 	private boolean connectServer() {
@@ -193,9 +211,7 @@ public class clSyncClientThread {
 	/**
 	 * Function to close connection to server
 	 *
-	 * @param none
-	 * 
-	 * @return if the socket has been closed 
+	 * @return if the socket has been closed
 	 *
 	 */
 	private boolean closeServer() {
@@ -224,9 +240,7 @@ public class clSyncClientThread {
 	/**
 	 * Function to get delta between server and client time
 	 *
-	 * @param none
-	 * 
-	 * @return time difference 
+	 * @return time difference
 	 *
 	 */
 	// TODO : set private after tests
@@ -243,7 +257,7 @@ public class clSyncClientThread {
 	/**
 	 * Function to declare delta between server and client time as valid
 	 *
-	 * @param deltaDate   time difference
+	 * @param deltaValid   time difference
 	 * 
 	 * @return none 
 	 *
@@ -256,9 +270,7 @@ public class clSyncClientThread {
 	/**
 	 * Function to know if delta between server and client time is valid
 	 *
-	 * @param deltaDate   time difference
-	 * 
-	 * @return none 
+	 * @return none
 	 *
 	 */
 	private boolean isDeltaValid() {
@@ -268,8 +280,6 @@ public class clSyncClientThread {
 	/**
 	 * Public function to get the synchronized time 
 	 *
-	 * @param none
-	 * 
 	 * @return time in milliseconds since Jan. 1, 1970 GMT.
 	 *
 	 */
@@ -281,12 +291,24 @@ public class clSyncClientThread {
 	}
 
     /**
+     * Determine if timeStamp is reached
+     *
+     * @param _timeStamp
+     */
+    public boolean isTimeStampReached(long _timeStamp) {
+        return (_timeStamp - getTime())<=0;
+    }
+
+    /**
      * Wait until specified timeStamp
      *
      * @param _timeStamp
      */
     public void waitUntilTimeStamp(long _timeStamp) throws InterruptedException {
         long delta = _timeStamp - getTime();
-        if (delta>0) Thread.sleep(delta);
+        while(delta>0) {
+            Thread.sleep(delta/10);
+            delta = _timeStamp - getTime();
+        }
     }
 }

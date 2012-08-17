@@ -198,7 +198,8 @@ public class MyActivity extends Activity {
 			streamerListHolder.image.setImageResource(R.drawable.ic_menu_feed);
 			String currentIP = "";
 			if (synapReceiver != null) {
-				synapReceiver.stop();
+				// TODO : Comprendre pourquoi ce stop - commenté pour tester reception
+				//synapReceiver.stop();
 				currentIP = synapReceiver.getServerInet();
 			}
 			if (lSynapEntity.getIpAdress().compareTo(currentIP) == 0) {
@@ -231,9 +232,10 @@ public class MyActivity extends Activity {
 			if (streamerIp.compareTo(currentIP) == 0) {
 				play.setImageResource(R.drawable.ic_menu_play);
 			} else {
-				clContentOut contentOut = new clContentOutAudioTrack(40);
+				clContentOut contentOut = new clContentOutAudioTrack(1000);
 		        String mcastIP = "224.0.0.1";
-                contentOut.setPlayoutParameter(16,2,44100);
+                //contentOut.setPlayoutParameter(16,2,44100);
+                contentOut.setPlayoutParameter(8,1,32000);
 		        synapReceiver = new clReceiver();
 		        synapReceiver.setContentInet(mcastIP);
 		        synapReceiver.setServerInet(streamerIp);

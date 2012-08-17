@@ -70,14 +70,19 @@ public class clReceiver {
 
         pv_threadMainLoop = new Thread(new Runnable() {
             public void run() {
-                Log.i(TAG,"main thread started");
+                Log.v(TAG,"main thread started");
                 clTransportAudioPacket packet;
                 try {
-                    Log.i(TAG,"wait for packet");
+                    Log.v(TAG,"PreQueue");
                     packet = pv_transport.getTransportAudioPacket();
-                    pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
-                    pv_sync.waitUntilTimeStamp(packet.mTimeStamp);
+                    long timeStampStart = packet.mTimeStamp;
+                    while (pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount)
+                            && !pv_sync.isTimeStampReached(timeStampStart)){
+                        packet = pv_transport.getTransportAudioPacket();
+                    }
+                    pv_sync.waitUntilTimeStamp(timeStampStart);
                     pv_contentOut.start();
+                    Log.v(TAG,"startPlay");
                     while(!Thread.interrupted()) {
                         packet = pv_transport.getTransportAudioPacket();
                         pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
@@ -88,7 +93,7 @@ public class clReceiver {
                 }
                 pv_transport.stop();
                 pv_contentOut.stop();
-                Log.i(TAG,"main thread stopped");
+                Log.v(TAG,"main thread stopped");
             }
         });
         pv_threadMainLoop.start();
