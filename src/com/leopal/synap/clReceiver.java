@@ -58,7 +58,7 @@ public class clReceiver implements Runnable {
         pv_transport = new clTransportReceiver();
     }
 
-    public void start() {
+    private void init() {
         try {
             pv_sync.setServer(InetAddress.getByName(pv_serverStringInet)); //TODO Move in start/stop when clSync manage stop
         } catch (UnknownHostException e) {
@@ -67,21 +67,6 @@ public class clReceiver implements Runnable {
         //Adapt receive buffer size according to output parameters
         pv_transport.setRcvBuffer(pv_contentOut.getBlockLengthMs()*pv_contentOut.getPcmFormat().getOneMsByteSize());
         pv_transport.start(pv_contentStringInet);
-
-    }
-
-    public void stop() {
-        if (pv_threadMainLoop !=null) {
-            if (pv_threadMainLoop.isAlive()) {
-                pv_threadMainLoop.interrupt();
-                try {
-                    pv_threadMainLoop.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-                }
-            }
-        }
-        this.pv_transport.closeCommLink();
     }
 
     /**
@@ -103,6 +88,7 @@ public class clReceiver implements Runnable {
      * @param _Inet    String of the addresse
      */
     public void setServerInet(String _Inet) {
+
         this.pv_serverStringInet = _Inet;
     }
 
@@ -111,30 +97,41 @@ public class clReceiver implements Runnable {
     }
 
     public void setContentOut(clContentOut _contentOut){
-        stop();
+        if (pv_contentOut!=null) pv_contentOut.stop();
         this.pv_contentOut = _contentOut;
     }
 
-	@Override
+	public void cancel() {
+        Thread.currentThread().interrupt();
+    }
+
 	public void run() {
-            Log.i(TAG,"main thread started");
-            clTransportAudioPacket packet;
-            try {
-                Log.i(TAG,"wait for packet");
+        init();
+        Log.v(TAG,"main thread started");
+        clTransportAudioPacket packet;
+        try {
+            Log.v(TAG,"PreQueue");
+            packet = pv_transport.getTransportAudioPacket();
+            long timeStampStart = packet.mTimeStamp;
+            while (pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount)
+                    && !pv_sync.isTimeStampReached(timeStampStart)){
+                packet = pv_transport.getTransportAudioPacket();
+            }
+            pv_sync.waitUntilTimeStamp(timeStampStart);
+            pv_contentOut.start();
+            Log.v(TAG,"startPlay");
+            while(!Thread.currentThread().isInterrupted()) {
                 packet = pv_transport.getTransportAudioPacket();
                 pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
-                pv_sync.waitUntilTimeStamp(packet.mTimeStamp);
-                pv_contentOut.start();
-                while(!Thread.interrupted()) {
-                    packet = pv_transport.getTransportAudioPacket();
-                    pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
-                }
-            } catch (InterruptedException e) {
-                //Packet reception problem
-                e.printStackTrace();
             }
-            pv_transport.stop();
-            pv_contentOut.stop();
-            Log.i(TAG,"main thread stopped");
-	}
+        } catch (InterruptedException e) {
+            //Packet reception problem
+            e.printStackTrace();
+            Thread.currentThread().interrupt();
+        }
+        pv_transport.stop();
+        pv_transport.closeCommLink();
+        pv_contentOut.stop();
+        Log.v(TAG,"main thread stopped");
+    }
 }

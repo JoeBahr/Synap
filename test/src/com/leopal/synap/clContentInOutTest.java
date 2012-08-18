@@ -57,7 +57,7 @@ public class clContentInOutTest extends android.test.AndroidTestCase {
     public void testStartToPlay() throws Exception {
         int bufferLength = 20;
         clContentIn audioReader = new clContentInWaveFile(bufferLength);
-        clContentOut classToTest = new clContentOutAudioTrack(bufferLength);
+        clContentOut classToTest = new clContentOutAudioTrack(1000);
 
         Resources resources =  getContext().getResources();
         InputStream inputStream = resources.openRawResource(com.leopal.synap.R.raw.audio_44100_16bits_2channels_extract);

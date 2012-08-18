@@ -39,13 +39,13 @@ public class clTransport {
 
     private int rcvBufferSize;
     private clNetwork networkInfo = new clNetwork();
-	
-	/**
+
+    private int mSequenceNumberPrevious;
+
+    /**
 	 * clTransport() class constructor.
 	 * 
 	 *  
-	 * @param None    
-	 *                            	 
 	 * @return 	None
 	 *
 	 */	
@@ -65,14 +65,14 @@ public class clTransport {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
         //Default buffer size
-        setRcvBuffer(1600);
-	}
+        setRcvBuffer(2000);
+    }
 	
 	/**
 	 * commLinkInit() is used to initialize a communication link.
 	 * 
 	 *  
-	 * @param String multiCastAd: Targeted multicast address    
+	 * @param multiCastAd : Targeted multicast address
 	 *                            	 
 	 * @return 	COMM_LINK_CLOSE => initialization not performed
 	 * 			COMM_LINK_OPEN => initialization performed and OK
@@ -107,8 +107,6 @@ public class clTransport {
 	 * closeCommLink() is used to close an opened communication link.
 	 * 
 	 *  
-	 * @param None   
-	 *                            	 
 	 * @return 	COMM_LINK_CLOSE => the operations ends successfully
 	 * 			COMM_LINK_EXCEPTION_ERR => An exception is returned by the socket function
 	 *
@@ -153,7 +151,7 @@ public class clTransport {
 			{
 				ByteArrayOutputStream outStream = new ByteArrayOutputStream();
 				ObjectOutputStream outStreamObject = new ObjectOutputStream(outStream);
-				
+
 				outStreamObject.writeObject(mAudioPacket);
 				outStreamObject.close();
 									
@@ -174,9 +172,7 @@ public class clTransport {
 	 * rReceiveData() is used by the receiver to read data from a group if a communication link is established.
 	 * 
 	 *  
-	 * @param None
-	 *     	 
-	 * @return  int value	0	-> mcommLinkInit missing 
+	 * @return  int value	0	-> mcommLinkInit missing
 	 * 						1	-> Rcv Ok
 	 * 						2	-> Start Frame Id error
 	 * 						3 	-> CS error
@@ -204,13 +200,17 @@ public class clTransport {
 				mRcvCsErr = false;
 				if(mAudioPacket.mStartFrameId != mAudioPacket.getStartFrameId())
 				{
-					Log.d(TAG, "Start Frame Id OK");
+					Log.d(TAG, "Start Frame Id KO");
 					mRcvStartFrameIdErr = true;
 					returnValue = 2;
 				}
 				if(mAudioPacket.mCs != computeCs(mAudioPacket.mAudioData, mAudioPacket.mAudioData.length))
 				{
 					Log.d(TAG, "CS KO");
+                    if ((mSequenceNumberPrevious+1)==mAudioPacket.mSeqNumber)
+                        mSequenceNumberPrevious++;
+                    else
+                        Log.e(TAG, "Sequence error Previous=" + mSequenceNumberPrevious + " Received="+ mAudioPacket.mSeqNumber);
 					mRcvCsErr = true;
 					returnValue = 3;
 				}	
@@ -269,8 +269,8 @@ public class clTransport {
 	/**
 	 * computeCs() is a private function called to compute a CS an an array
 	 *   
-	 * @param byte[] buf The array on which the CS is computed
-	 * @param byte[] length  number of bytes from buf used for computation (from buf[0]to buf[length])     
+	 * @param buf The array on which the CS is computed
+	 * @param length  number of bytes from buf used for computation (from buf[0]to buf[length])
 	 * 
 	 * @return int the check sumvalue	the packet ready to send
 	 *
@@ -301,6 +301,7 @@ public class clTransport {
         boolean result;
         rcvBufferSize=_size*2; //TODO: Optimize the size of buffer (*2 is a security less necessary)
         try {
+            mSocket.setSendBufferSize(rcvBufferSize);
             mSocket.setReceiveBufferSize(rcvBufferSize);
             result = true;
         } catch (SocketException e) {

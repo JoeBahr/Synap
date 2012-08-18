@@ -60,7 +60,7 @@ public class clNetwork {
 	/**
 	 * Broadcast address (string)
 	 * 
-	 * @param lContext : activity context
+	 * @param applicationContext : activity context
 	 */
 	public String getBroadcastAdress(Context applicationContext) {
 		return getBroadcastAdressInet(applicationContext).toString();

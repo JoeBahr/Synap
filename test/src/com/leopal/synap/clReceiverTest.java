@@ -21,8 +21,8 @@ public class clReceiverTest extends AndroidTestCase {
         clReceiver classToTest = new clReceiver();
         clStreamer streamer = new clStreamer();
 
-        clContentIn contentIn = new clContentInWaveFile(16);
-        clContentOut contentOut = new clContentOutAudioTrack(20);
+        clContentIn contentIn = new clContentInWaveFile(11);
+        clContentOut contentOut = new clContentOutAudioTrack(400);
         contentIn.openAudioInputStream(inputStream);
         assertEquals(1,contentOut.setPlayoutParameter(16,2,44100));
 
@@ -36,18 +36,18 @@ public class clReceiverTest extends AndroidTestCase {
         streamer.setContentIn(contentIn);
         streamer.setContentInet(mcastIP);
 
-        classToTest.start();
+        (new Thread(classToTest)).start();
         streamer.start();
 
         Thread.sleep(15000);
 
-        classToTest.stop();
+        classToTest.cancel();
         streamer.stop();
     }
 
     public void testStart() throws Exception {
         clReceiver classToTest = new clReceiver();
-        clContentOut contentOut = new clContentOutAudioTrack(15);
+        clContentOut contentOut = new clContentOutAudioTrack(500);
         String mcastIP = "224.0.0.1";
         String ipServer = "127.0.0.1";
 
@@ -56,9 +56,9 @@ public class clReceiverTest extends AndroidTestCase {
         classToTest.setContentOut(contentOut);
         contentOut.setPlayoutParameter(16,2,44100);
 
-        classToTest.start();
+        new Thread(classToTest).start();
         //Thread.sleep(1000);
-        classToTest.stop();
+        classToTest.cancel();
     }
 
     public void testSetContentInet() throws Exception {
@@ -79,7 +79,7 @@ public class clReceiverTest extends AndroidTestCase {
 
     public void testSetContentOut() throws Exception {
         clReceiver classToTest = new clReceiver();
-        clContentOut contentOut = new clContentOutAudioTrack(8);
+        clContentOut contentOut = new clContentOutAudioTrack(500);
 
         classToTest.setContentOut(contentOut);
     }

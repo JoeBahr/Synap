@@ -130,7 +130,7 @@ public class clContentInWaveFile extends clContentIn {
         pv_pcmFormat.setSampleRate(rate);
 
         int bits = buffer.getShort();
-        checkInfo_LogErrors(bits == 16, "Unsupported bits: " + bits);
+        checkInfo_LogErrors(bits > 16, "Unsupported bits: " + bits);
         pv_pcmFormat.setBitDepth(bits);
 
         int dataSize = 0;

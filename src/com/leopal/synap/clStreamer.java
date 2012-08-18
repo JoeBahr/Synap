@@ -3,6 +3,9 @@ package com.leopal.synap;
 import android.util.Log;
 
 /**
+ * ******************************************
+ * THIS CLASS IS REPLACED BY StreamerService but still used for TEST
+ *
  * This class manage the streaming of a contentIn
  *
  * @author nicolas
@@ -79,7 +82,7 @@ public class clStreamer {
                         int blockLength = pv_contentIn.getBlockLengthMs();
                         //int sampleCount = pv_contentIn.getPcmFormat().
                         //Prepare playout in xx sec
-                        long timeStamp = pv_syncServer.getTime()+3000; //TODO Transform this value as a parameter
+                        long timeStamp = pv_syncServer.getTime()+1000; //TODO Transform this value as a parameter
 
                         //First Send
                         sampleCount = pv_contentIn.readNextAudioBlock(buf);
@@ -103,7 +106,7 @@ public class clStreamer {
                                 endRequested = true;
                             } else {
                                 try {
-                                    //TODO: add a rateshaper algorithm better than that.../2
+                                    //add a rateshaper algorithm better than that.../2 : Replaced by StreamerService
                                     Thread.sleep(blockLength/2);
                                 } catch (InterruptedException e) {
                                     endRequested = true;

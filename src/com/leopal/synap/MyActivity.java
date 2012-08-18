@@ -1,11 +1,5 @@
 package com.leopal.synap;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import android.app.Activity;
 import android.content.ComponentName;
@@ -14,7 +8,6 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -247,7 +240,8 @@ public class MyActivity extends Activity {
 			streamerListHolder.image.setImageResource(R.drawable.ic_menu_feed);
 			String currentIP = "";
 			if (synapReceiver != null) {
-				synapReceiver.stop();
+				// TODO : Comprendre pourquoi ce stop - commenté pour tester reception
+				//synapReceiver.stop();
 				currentIP = synapReceiver.getServerInet();
 			}
 			if ((lSynapEntity != null) && (lSynapEntity.getIpAdress().compareTo(currentIP) == 0)) {
@@ -272,24 +266,25 @@ public class MyActivity extends Activity {
 			ImageView play = (ImageView)list.findViewById(R.id.cmd_play);
 			String currentIP = "";
 			if (synapReceiver != null) {
-				synapReceiver.stop();
+                synapReceiver.cancel();
 				currentIP = synapReceiver.getServerInet();
 			}
 			if (streamerIp.compareTo(currentIP) == 0) {
 				play.setImageResource(R.drawable.ic_menu_play);
 			} else {
-				clContentOut contentOut = new clContentOutAudioTrack(40);
-		        contentOut.setPlayoutParameter(16,2,44100);
+				clContentOut contentOut = new clContentOutAudioTrack(1000);
+		        //contentOut.setPlayoutParameter(16,2,44100);
+                contentOut.setPlayoutParameter(8,1,32000);
 		        synapReceiver = new clReceiver();
 		        synapReceiver.setContentInet(networkInfo.getMulticastAdress());
 		        synapReceiver.setServerInet(streamerIp);
 		        synapReceiver.setContentOut(contentOut);
-		        synapReceiver.start();
-		        synapReceiver.run();
+		        new Thread(synapReceiver).start();
 				play.setImageResource(R.drawable.ic_menu_cancel);
 			}
 			
 
 		}
 	};
+
 }

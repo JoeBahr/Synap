@@ -64,6 +64,11 @@ public class clStreamerService extends Service {
     private Thread pv_threadMainLoop;
 
     /**
+     * Bitrate Control for main stream
+     */
+    private clRateLimiting pv_streamRateLimiting;
+
+    /**
      * Pause is required for current stream
      * Note : global pause used as suspend process is deprecated...
      */
@@ -249,8 +254,7 @@ public class clStreamerService extends Service {
     }
 
     private void setInputStream(String file) {
-		// TODO :
-    	// Replace f initialisation as soon as stremaer manage MP3.
+		// TODO : Replace f initialisation as soon as streamer manage MP3.
     	//File f = new File(file);
 		File f = new File(Environment.getExternalStorageDirectory() 
                 + File.separator + "Music" + File.separator + "rhcp_atw.wav");
@@ -264,7 +268,7 @@ public class clStreamerService extends Service {
     
         bufferedInputStream = new BufferedInputStream(lInputStream);
         
-        clContentIn contentIn = new clContentInWaveFile(16);
+        clContentIn contentIn = new clContentInWaveFile(30);
         try {
             contentIn.openAudioBufferedInputStream(bufferedInputStream);
         } catch (IOException e) {
@@ -273,8 +277,11 @@ public class clStreamerService extends Service {
         pv_contentIn = contentIn;
 	}
 	
+    // TODO : Split this code to be able to test the streaming function independantly
     private void startStream() {
-    	streamPaused = false;
+        pv_streamRateLimiting = new clRateLimiting();
+
+        streamPaused = false;
         if (pv_transport.commLinkInit(pv_contentStringInet)==clTransport.COMM_LINK_OPEN) {
             if (!pv_contentIn.isEndOfContent()) {
                 pv_threadMainLoop = new Thread(new Runnable() {
@@ -288,13 +295,18 @@ public class clStreamerService extends Service {
                         //Prepare the buffer
                         byte[] buf = pv_contentIn.getAudioBlockBuffer();
                         int blockLength = pv_contentIn.getBlockLengthMs();
+
+                        //Determine bitrate stream
+                        pv_streamRateLimiting.setMaximumBitrate(pv_contentIn.getPcmFormat().getSampleRate());
+
                         //int sampleCount = pv_contentIn.getPcmFormat().
                         //Prepare playout in xx sec
                         long timeStamp = pv_syncServer.getTime()+3000; //TODO Transform this value as a parameter
 
                         //First Send
                         sampleCount = pv_contentIn.readNextAudioBlock(buf);
-                        pv_transport.sSendData(buf,timeStamp,true, sampleCount);
+                        pv_streamRateLimiting.setDataSent(sampleCount);
+                        pv_transport.sSendData(buf, timeStamp, true, sampleCount);
                         timeStamp+=blockLength;
                         //second Send to get advance
                         //pv_contentIn.readNextAudioBlock(buf);
@@ -307,22 +319,22 @@ public class clStreamerService extends Service {
                                 && (!endRequested) ) {
                             if (!streamPaused) {
 	                        	sampleCount = pv_contentIn.readNextAudioBlock(buf);
-	                            pv_transport.sSendData(buf,timeStamp,false, sampleCount);
-	                            timeStamp+=blockLength;
+
+                                if (Thread.interrupted()) {
+                                    endRequested = true;
+                                } else {
+                                    if ( !pv_streamRateLimiting.isReadyToSend(sampleCount) )
+                                        endRequested = true;
+                                    else {
+                                        pv_streamRateLimiting.setDataSent(sampleCount);
+                                        pv_transport.sSendData(buf, timeStamp, false, sampleCount);
+                                        timeStamp+=blockLength;
+                                    }
+                                }
+
                             }
 
                             //Log.i(TAG, "Send Samples " + sampleCount);
-
-                            if (Thread.interrupted()) {
-                                endRequested = true;
-                            } else {
-                                try {
-                                    //TODO: add a rateshaper algorithm better than that.../2
-                                    Thread.sleep(blockLength/2);
-                                } catch (InterruptedException e) {
-                                    endRequested = true;
-                                }
-                            }
                             eOf = pv_contentIn.isEndOfContent();
                         }
                         if (eOf) {

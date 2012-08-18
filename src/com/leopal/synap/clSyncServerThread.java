@@ -39,7 +39,7 @@ public class clSyncServerThread implements Runnable {
 	/**
 	 * Define input socket for server thread and attach in and out streams
 	 *
-	 * @param Socket    socket created by the server socket when a connection 
+	 * @param _socket    socket created by the server socket when a connection
 	 *                  is required by client
 	 *
 	 * @return 
@@ -60,9 +60,7 @@ public class clSyncServerThread implements Runnable {
 	/**
 	 * Function to get client request (if any), and answer with required times 
 	 *
-	 * @param none
-	 * 
-	 * @return if a request has been received and managed 
+	 * @return if a request has been received and managed
 	 *
 	 */
 	private boolean answerRequest() {
@@ -110,9 +108,7 @@ public class clSyncServerThread implements Runnable {
 	/**
 	 * Public function to start a NTP server 
 	 *
-	 * @param none
-	 * 
-	 * @return if the server thread has been started 
+	 * @return if the server thread has been started
 	 *
 	 */
 	public boolean startServer() {
@@ -149,8 +145,6 @@ public class clSyncServerThread implements Runnable {
 	 * Runnable function to handle a connection with one client
 	 * Answer to both client request and close communication 
 	 *
-	 * @param none
-	 * 
 	 * @return none
 	 *
 	 */
@@ -174,8 +168,6 @@ public class clSyncServerThread implements Runnable {
 	/**
 	 * Public function to get the synchronized time 
 	 *
-	 * @param none
-	 * 
 	 * @return time in milliseconds since Jan. 1, 1970 GMT.
 	 *
 	 */
