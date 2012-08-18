@@ -44,7 +44,7 @@ public class clStreamerTest extends AndroidTestCase {
      * @throws Exception
      */
     public void testStop() throws Exception {
-        clContentIn contentIn = new clContentInWaveFile(1000);
+        clContentIn contentIn = new clContentInWaveFile(8);
         contentIn.openAudioInputStream(inputStream);
         assertEquals(false,contentIn.isEndOfContent());
 

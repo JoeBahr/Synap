@@ -87,6 +87,7 @@ public class clStreamerService extends Service {
 			case clPlaylistService.PLAYLIST_PLAY:
 				stopStream();
 				setInputStream(servicePlaylist.getPlayed());
+				serviceAnnouncement.setStreamInfo(servicePlaylist.getPlayed());
 				startStream();
 			break;
 			case clPlaylistService.PLAYLIST_PAUSE:
@@ -117,17 +118,41 @@ public class clStreamerService extends Service {
 		}
 	};
 
+	// Announcement Service connections
+	private boolean serviceAnnouncementIsBound;
+	private clAnnouncementService serviceAnnouncement;
+
+	private ServiceConnection serviceAnnouncementConnection = new ServiceConnection() {
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			serviceAnnouncement = ((clAnnouncementService.LocalBinder) service)
+					.getService();
+			serviceAnnouncement.setStreamer();
+			serviceAnnouncement.setStreamInfo("");
+		}
+
+		public void onServiceDisconnected(ComponentName className) {
+			serviceAnnouncement = null;
+		}
+	};
+	
 	void doBindService() {
 		bindService(
 				new Intent(clStreamerService.this, clPlaylistService.class),
 				servicePlaylistConnection, Context.BIND_AUTO_CREATE);
 		servicePlaylistIsBound = true;
+		bindService(new Intent(clStreamerService.this, clAnnouncementService.class),
+				serviceAnnouncementConnection, Context.BIND_AUTO_CREATE);
+		serviceAnnouncementIsBound = true;
 	}
 
 	void doUnbindService() {
 		if (servicePlaylistIsBound) {
-			getApplicationContext().unbindService(servicePlaylistConnection);
+			//getApplicationContext().unbindService(servicePlaylistConnection);
 			servicePlaylistIsBound = false;
+		}
+		if (serviceAnnouncementIsBound) {
+			//getApplicationContext().unbindService(serviceAnnouncementConnection);
+			serviceAnnouncementIsBound = false;
 		}
 	}
 	
@@ -139,12 +164,13 @@ public class clStreamerService extends Service {
 
 	@Override
 	public void onCreate() {
+		clNetwork networkInfo = new clNetwork();
 		mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         pv_syncServer = new clSyncServerThread();
         pv_transport = new clTransport();
         pv_syncServer.startServer();
         doBindService();
-        setContentInet("224.0.0.1");
+        setContentInet(networkInfo.getMulticastAdress());
 		showNotification();
 	}
 
@@ -164,6 +190,7 @@ public class clStreamerService extends Service {
 	
 	@Override
 	public void onDestroy() {
+		//serviceAnnouncement.resetStreamer();
 		doUnbindService();
 		mNM.cancel(NOTIFICATION);
 	}
@@ -190,7 +217,7 @@ public class clStreamerService extends Service {
 		// The PendingIntent to launch our activity if the user selects this
 		// notification
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-				new Intent(this, MusicActivity.class), 0);
+				new Intent(this, StreamerActivity.class), 0);
 
 		// Set the info for the views that show in the notification panel.
 		notification.setLatestEventInfo(this,
@@ -231,6 +258,7 @@ public class clStreamerService extends Service {
     	//File f = new File(file);
 		File f = new File(Environment.getExternalStorageDirectory() 
                 + File.separator + "Music" + File.separator + "rhcp_atw.wav");
+    	//File f = new File("/mnt/sdcard/Music/rhcp_atw");
         InputStream lInputStream = null;
 		try {
 			lInputStream = new FileInputStream(f);

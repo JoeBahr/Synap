@@ -30,8 +30,6 @@ public class clTransport {
 	public static final int COMM_LINK_ADDR_ERROR = 2;
 	public static final int COMM_LINK_EXCEPTION_ERR = 3;
 	
-	private static final int TR_PORT = 3123;
-	
 	clTransportAudioPacket mAudioPacket = new 	clTransportAudioPacket();
 	private InetAddress mGroup;
 	private MulticastSocket mSocket;
@@ -40,8 +38,9 @@ public class clTransport {
 	private boolean mRcvStartFrameIdErr;
 
     private int rcvBufferSize;
+    private clNetwork networkInfo = new clNetwork();
 
-	private int mSequenceNumberPrevious;
+    private int mSequenceNumberPrevious;
 
     /**
 	 * clTransport() class constructor.
@@ -61,7 +60,7 @@ public class clTransport {
 		mRcvStartFrameIdErr = false;
 
         try {
-            mSocket = new MulticastSocket(TR_PORT);
+            mSocket = new MulticastSocket(networkInfo.DATA_PORT);
         } catch (IOException e) {
             e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
         }
@@ -155,8 +154,8 @@ public class clTransport {
 
 				outStreamObject.writeObject(mAudioPacket);
 				outStreamObject.close();
-
-				DatagramPacket packetToSend = new DatagramPacket(outStream.toByteArray(), outStream.toByteArray().length, mGroup, TR_PORT);
+									
+				DatagramPacket packetToSend = new DatagramPacket(outStream.toByteArray(), outStream.toByteArray().length, mGroup, networkInfo.DATA_PORT);
 				mSocket.send(packetToSend);
 				returnValue = true;
 			}
