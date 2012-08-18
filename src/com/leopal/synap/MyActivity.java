@@ -1,7 +1,12 @@
 package com.leopal.synap;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
-
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -9,6 +14,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,20 +24,47 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+
+/**
+ * This class is an Activity.
+ * 
+ * This activity is the entry point of the application
+ * - provide command to start streaming 
+ * - provide the list of streamers (if any) and allow to receive the streamer music
+ *
+ * @author benoit, nicolas, olivier, sylvain
+ */
 
 public class MyActivity extends Activity { 
    
-	private clReceiver synapReceiver;
-
+	/**
+     * Receiver entity if connected to a streamer 
+     */
+    private clReceiver synapReceiver;
+    /**
+     * Adapter to build list of streamers
+     */
     StreamerListAdapter streamerAdapter;
-	int countStreamers;
-	private ListView list;
-	private LinearLayout emptyList;
+    /**
+     * View containing list of streamers 
+     */
+    private ListView list;
+    /**
+     * Layout when no streamers available 
+     */
+    private LinearLayout emptyList;
+	/**
+     * Network definition to retrieve IPs 
+     */
+    clNetwork networkInfo = new clNetwork();
 	
-	/** Called when the activity is first created. */
-    
+	/** 
+	 * Called when the activity is first created :
+	 * - create command to start streaming 
+	 * - create the list of streamers (if any) or search information
+	 * - start announcement service
+	 */
     public void onCreate(Bundle savedInstanceState) {
         
     	super.onCreate(savedInstanceState);
@@ -52,13 +85,29 @@ public class MyActivity extends Activity {
         init_streamers_grid();
         doBindService();
     }
+    
+    /** 
+	 * Called when leaving activity :
+	 * - nothing to do (activity kept)
+	 */
     @Override
-	protected void onDestroy() {
-		super.onDestroy();
+    protected void onDestroy() {
+		//super.onDestroy();
 	}
-
-	private void init_streamers_grid() {
-		countStreamers = 0;
+    
+    /** 
+	 * Called when come back from other activity :
+	 * - create the list of streamers (if any) or search information
+	 */
+    protected void onResume() {
+    	super.onResume();
+    	init_streamers_grid();
+	}
+    
+    /** 
+	 * Create the list of streamers (if any) or search information
+	 */
+    private void init_streamers_grid() {
 		streamerAdapter = new StreamerListAdapter();
 		list = (ListView) findViewById(R.id.StreamersList);
 		
@@ -72,43 +121,43 @@ public class MyActivity extends Activity {
 		}
 	}
 	
-	// Announcement Service connections
+	/**
+	 * Announcement Service connections
+	 */
 	private boolean serviceAnnouncementIsBound;
 	private clAnnouncementService serviceAnnouncement;
-
 	final clAnnouncementServiceListener streamerServiceListener = new clAnnouncementServiceListener() {
 		public void dataChanged(Byte action) {
 			MyActivity.this.runOnUiThread(new Runnable() {
 				public void run() {
-					if (serviceAnnouncement.getSize() > 0 ) {
-						streamerAdapter.addItem(serviceAnnouncement.getListItem(0));
-						streamerAdapter.notifyDataSetChanged();
+					int i;
+					streamerAdapter.initialize();
+					for(i=0; i<serviceAnnouncement.getStreamerSize() ; i++) {
+						streamerAdapter.addItem(serviceAnnouncement.getStreamerListItem(i));
+					}
+					if (streamerAdapter.getCount() == 0) {
+						emptyList = (LinearLayout) findViewById(R.id.Search);
+						emptyList.setVisibility(View.VISIBLE);
 					}
 				}
 			});
 		}
 	};
-
 	private ServiceConnection serviceAnnouncementConnection = new ServiceConnection() {
 		public void onServiceConnected(ComponentName className, IBinder service) {
 			serviceAnnouncement = ((clAnnouncementService.LocalBinder) service)
 					.getService();
 			serviceAnnouncement.addListener(streamerServiceListener);
 		}
-
 		public void onServiceDisconnected(ComponentName className) {
 			serviceAnnouncement = null;
 		}
 	};
-	
 	void doBindService() {
-		// bindService(...) is not directly available in childs of TabHost.
-		// requires usage of getApplicationContext()
 		bindService(new Intent(MyActivity.this, clAnnouncementService.class),
 				serviceAnnouncementConnection, Context.BIND_AUTO_CREATE);
 		serviceAnnouncementIsBound = true;
 	}
-
 	void doUnbindService() {
 		if (serviceAnnouncementIsBound) {
 			getApplicationContext().unbindService(serviceAnnouncementConnection);
@@ -162,7 +211,6 @@ public class MyActivity extends Activity {
 			public ImageView image;
 			public TextView texte;
 			public ImageView play;
-			//public ImageView append;
 		}
 		
 		public View getView(int position, View convertView, ViewGroup parent) {
@@ -194,14 +242,15 @@ public class MyActivity extends Activity {
 			} else {
 				streamerListHolder = (StreamerListViewHolder) convertView.getTag();
 			}
-			clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);;
+			clSynapEntity lSynapEntity = serviceAnnouncement.getStreamerListItem(position);
+			//clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);
 			streamerListHolder.image.setImageResource(R.drawable.ic_menu_feed);
 			String currentIP = "";
 			if (synapReceiver != null) {
 				synapReceiver.stop();
 				currentIP = synapReceiver.getServerInet();
 			}
-			if (lSynapEntity.getIpAdress().compareTo(currentIP) == 0) {
+			if ((lSynapEntity != null) && (lSynapEntity.getIpAdress().compareTo(currentIP) == 0)) {
 				streamerListHolder.play.setImageResource(R.drawable.ic_menu_cancel);
 			} else {
 				streamerListHolder.play.setImageResource(R.drawable.ic_menu_play);
@@ -211,19 +260,17 @@ public class MyActivity extends Activity {
 			return convertView;
 		}
 	}
-	private void setPlayIcon(ImageView play, String streamerIp) {
-		
-	}
+	
 	private OnClickListener buttonPlayClickListener = new OnClickListener() {
 		@Override
 		public void onClick(View v) {
 			
 			final int position = list.getPositionForView(v);
-			clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);
+			clSynapEntity lSynapEntity = serviceAnnouncement.getStreamerListItem(position);
+			//clSynapEntity lSynapEntity = serviceAnnouncement.getListItem(position);
 			String streamerIp = lSynapEntity.getIpAdress();
 			ImageView play = (ImageView)list.findViewById(R.id.cmd_play);
 			String currentIP = "";
-			
 			if (synapReceiver != null) {
 				synapReceiver.stop();
 				currentIP = synapReceiver.getServerInet();
@@ -232,18 +279,17 @@ public class MyActivity extends Activity {
 				play.setImageResource(R.drawable.ic_menu_play);
 			} else {
 				clContentOut contentOut = new clContentOutAudioTrack(40);
-		        String mcastIP = "224.0.0.1";
-                contentOut.setPlayoutParameter(16,2,44100);
+		        contentOut.setPlayoutParameter(16,2,44100);
 		        synapReceiver = new clReceiver();
-		        synapReceiver.setContentInet(mcastIP);
+		        synapReceiver.setContentInet(networkInfo.getMulticastAdress());
 		        synapReceiver.setServerInet(streamerIp);
 		        synapReceiver.setContentOut(contentOut);
 		        synapReceiver.start();
+		        synapReceiver.run();
 				play.setImageResource(R.drawable.ic_menu_cancel);
 			}
 			
 
 		}
 	};
-
 }

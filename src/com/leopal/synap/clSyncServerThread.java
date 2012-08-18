@@ -15,11 +15,6 @@ import java.util.Date;
 public class clSyncServerThread implements Runnable {
 
 	/**
-	 * TCP port = 37
-	 */
-	private static final int TCP_PORT=3737;
-	
-	/**
 	 * Server socket
 	 */
 	private ServerSocket openedServerSocket;
@@ -121,8 +116,9 @@ public class clSyncServerThread implements Runnable {
 	 *
 	 */
 	public boolean startServer() {
+		clNetwork networkInfo = new clNetwork();
 		try {
-			ServerSocket _Socket = new ServerSocket(TCP_PORT);
+			ServerSocket _Socket = new ServerSocket(networkInfo.NTP_PORT);
 			openedServerSocket = _Socket;
 			ServerThread = new Thread(new Runnable() {
 	        	public void run() {

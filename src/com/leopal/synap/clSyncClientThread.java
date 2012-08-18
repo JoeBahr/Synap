@@ -18,11 +18,6 @@ import android.os.Handler;
 public class clSyncClientThread {
 
 	/**
-	 * TCP port = 37
-	 */
-	private static final int TCP_PORT=3737;
-	
-	/**
 	 * IP Adress of the server
 	 */
 	private InetAddress dstAddress;
@@ -176,8 +171,9 @@ public class clSyncClientThread {
 	 *
 	 */
 	private boolean connectServer() {
+		clNetwork networkInfo = new clNetwork();
 		try {
-			Socket _socket = new Socket(dstAddress, TCP_PORT);
+			Socket _socket = new Socket(dstAddress, networkInfo.NTP_PORT);
 			_socket.setSoTimeout(1000);
 			_socket.setTcpNoDelay(true);
 			openedSocket = _socket;

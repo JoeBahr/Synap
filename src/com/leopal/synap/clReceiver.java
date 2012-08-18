@@ -17,7 +17,7 @@ import android.util.Log;
  *         Date: 21/11/11
  *         Time: 16:57
  */
-public class clReceiver {
+public class clReceiver implements Runnable {
     /** Logging TAG*/
     private static final String TAG = "clReceiverLog";
 
@@ -68,30 +68,6 @@ public class clReceiver {
         pv_transport.setRcvBuffer(pv_contentOut.getBlockLengthMs()*pv_contentOut.getPcmFormat().getOneMsByteSize());
         pv_transport.start(pv_contentStringInet);
 
-        pv_threadMainLoop = new Thread(new Runnable() {
-            public void run() {
-                Log.i(TAG,"main thread started");
-                clTransportAudioPacket packet;
-                try {
-                    Log.i(TAG,"wait for packet");
-                    packet = pv_transport.getTransportAudioPacket();
-                    pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
-                    pv_sync.waitUntilTimeStamp(packet.mTimeStamp);
-                    pv_contentOut.start();
-                    while(!Thread.interrupted()) {
-                        packet = pv_transport.getTransportAudioPacket();
-                        pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
-                    }
-                } catch (InterruptedException e) {
-                    //Packet reception problem
-                    e.printStackTrace();
-                }
-                pv_transport.stop();
-                pv_contentOut.stop();
-                Log.i(TAG,"main thread stopped");
-            }
-        });
-        pv_threadMainLoop.start();
     }
 
     public void stop() {
@@ -138,4 +114,27 @@ public class clReceiver {
         stop();
         this.pv_contentOut = _contentOut;
     }
+
+	@Override
+	public void run() {
+            Log.i(TAG,"main thread started");
+            clTransportAudioPacket packet;
+            try {
+                Log.i(TAG,"wait for packet");
+                packet = pv_transport.getTransportAudioPacket();
+                pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
+                pv_sync.waitUntilTimeStamp(packet.mTimeStamp);
+                pv_contentOut.start();
+                while(!Thread.interrupted()) {
+                    packet = pv_transport.getTransportAudioPacket();
+                    pv_contentOut.queueAudioBlock(packet.mAudioData,packet.mAudioDataSampleCount);
+                }
+            } catch (InterruptedException e) {
+                //Packet reception problem
+                e.printStackTrace();
+            }
+            pv_transport.stop();
+            pv_contentOut.stop();
+            Log.i(TAG,"main thread stopped");
+	}
 }

@@ -7,7 +7,10 @@ package com.leopal.synap;
  *
  */
 
-public class clSynapEntity {
+public class clSynapEntity implements java.io.Serializable {
+	//private static final String classe = "clSynapEntity";
+	private static final long serialVersionUID = 1L;
+
 	private String Name;
 	private Boolean isStreamer;
 	private String StreamInfo;
