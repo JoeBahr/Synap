@@ -29,7 +29,7 @@ import android.widget.TextView;
  * @author benoit, nicolas, olivier, sylvain
  */
 
-public class MyActivity extends Activity { 
+public class MyActivity extends synapMainClass {
    
 	/**
      * Receiver entity if connected to a streamer 

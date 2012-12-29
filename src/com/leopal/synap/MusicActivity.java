@@ -51,8 +51,10 @@ public class MusicActivity extends ListActivity {
 		public void dataChanged(Byte action) {
 			MusicActivity.this.runOnUiThread(new Runnable() {
 				public void run() {
-					resetPlayImages(getListView());
-					resetPlayList(getListView());
+                    resetPlayImages(getListView());
+                    //resetPlayImages((ListView) findViewById(R.id.music));
+                    resetPlayList(getListView());
+                    //resetPlayList((ListView) findViewById(R.id.music));
 				}
 			});
 		}
